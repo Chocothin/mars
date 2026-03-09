@@ -257,17 +257,25 @@ function handleAgentPoolStatus(projectId: string): Response {
 
 function handleChatStream(projectId: string, req: Request): Response {
   const registry = getOrchestratorRegistry();
+  let activeSession: import('../orchestrator/orchestrator-session').OrchestratorSession | null = null;
 
   const stream = new ReadableStream({
     async start(controller) {
       const encoder = new TextEncoder();
+      let closed = false;
 
       const send = (event: string, data: unknown) => {
-        controller.enqueue(encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`));
+        if (closed) return;
+        try {
+          controller.enqueue(encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`));
+        } catch {
+          closed = true;
+        }
       };
 
       try {
         const session = await registry.getOrCreate(projectId);
+        activeSession = session;
 
         send('status', { state: session.getState(), sessionId: session.getSessionId() });
 
@@ -289,10 +297,19 @@ function handleChatStream(projectId: string, req: Request): Response {
         send('response', { content: response, timestamp: Date.now() });
         send('done', { reason: 'complete' });
       } catch (err) {
+        if (closed) return;
         const errorMsg = err instanceof Error ? err.message : 'Internal server error';
         send('error', { message: errorMsg });
       } finally {
-        controller.close();
+        if (!closed) {
+          try { controller.close(); } catch {}
+        }
+      }
+    },
+
+    cancel() {
+      if (activeSession) {
+        activeSession.abort();
       }
     },
   });

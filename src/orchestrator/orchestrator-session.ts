@@ -86,11 +86,17 @@ export class OrchestratorSession {
       this.abortController = null;
 
       const error = err instanceof Error ? err : new Error(String(err));
-      this.history.push({
-        role: 'orchestrator',
-        content: `[Error] ${error.message}`,
-        timestamp: Date.now(),
-      });
+      const isAbort = error.name === 'AbortError'
+        || error.message.includes('abort')
+        || error.message.includes('Controller is already closed');
+
+      if (!isAbort) {
+        this.history.push({
+          role: 'orchestrator',
+          content: `[Error] ${error.message}`,
+          timestamp: Date.now(),
+        });
+      }
       throw error;
     }
   }
