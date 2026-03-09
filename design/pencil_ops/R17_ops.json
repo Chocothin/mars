@@ -1,0 +1,37 @@
+{
+  "name": "DAG Connections Overlay",
+  "batches": [
+    [
+      "frame=I(document, {type: \"frame\", name: \"DAG Connections Overlay\", x: 0, y: 54200, width: 1440, height: 900, fill: \"#0B0D14\", layout: \"none\", placeholder: false})",
+      "ConnInputPla_1=I(frame, {type: \"rectangle\", name: \"Conn: Input\u2192Planner\", x: 425, y: 341, width: 30, height: 2, fill: \"#10B981\", cornerRadius: [1, 1, 1, 1]})",
+      "ConnPlannerR_2=I(frame, {type: \"rectangle\", name: \"Conn: Planner\u2192Router\", x: 595, y: 341, width: 30, height: 2, fill: \"#10B981\", cornerRadius: [1, 1, 1, 1]})",
+      "ConnRouterCo_3=I(frame, {type: \"rectangle\", name: \"Conn: Router\u2192Code (center)\", x: 765, y: 341, width: 40, height: 2, fill: \"#10B981\", cornerRadius: [1, 1, 1, 1]})",
+      "ConnCodeAggr_4=I(frame, {type: \"rectangle\", name: \"Conn: Code\u2192Aggregator\", x: 945, y: 341, width: 30, height: 2, fill: \"#F59E0B\", cornerRadius: [1, 1, 1, 1]})",
+      "ConnAggregat_5=I(frame, {type: \"rectangle\", name: \"Conn: Aggregator\u2192Output\", x: 1115, y: 341, width: 25, height: 2, fill: \"#4B5563\", cornerRadius: [1, 1, 1, 1]})",
+      "ConnRouterRe_6=I(frame, {type: \"rectangle\", name: \"Conn: Router\u2192Research (horiz)\", x: 765, y: 341, width: 20, height: 2, fill: \"#10B981\", cornerRadius: [1, 1, 1, 1]})",
+      "ConnRouterRe_7=I(frame, {type: \"rectangle\", name: \"Conn: Router\u2192Research (vert)\", x: 784, y: 254, width: 2, height: 89, fill: \"#10B981\", cornerRadius: [1, 1, 1, 1]})",
+      "ConnRouterRe_8=I(frame, {type: \"rectangle\", name: \"Conn: Router\u2192Research (horiz2)\", x: 784, y: 254, width: 21, height: 2, fill: \"#10B981\", cornerRadius: [1, 1, 1, 1]})",
+      "ConnRouterAn_9=I(frame, {type: \"rectangle\", name: \"Conn: Router\u2192Analyzer (horiz)\", x: 765, y: 341, width: 20, height: 2, fill: \"#10B981\", cornerRadius: [1, 1, 1, 1]})",
+      "ConnRouterAn_10=I(frame, {type: \"rectangle\", name: \"Conn: Router\u2192Analyzer (vert)\", x: 784, y: 342, width: 2, height: 89, fill: \"#10B981\", cornerRadius: [1, 1, 1, 1]})",
+      "ConnRouterAn_11=I(frame, {type: \"rectangle\", name: \"Conn: Router\u2192Analyzer (horiz2)\", x: 784, y: 430, width: 21, height: 2, fill: \"#10B981\", cornerRadius: [1, 1, 1, 1]})",
+      "ConnResearch_12=I(frame, {type: \"rectangle\", name: \"Conn: Research\u2192Aggregator (horiz)\", x: 945, y: 254, width: 16, height: 2, fill: \"#F59E0B\", cornerRadius: [1, 1, 1, 1]})",
+      "ConnResearch_13=I(frame, {type: \"rectangle\", name: \"Conn: Research\u2192Aggregator (vert)\", x: 960, y: 254, width: 2, height: 89, fill: \"#F59E0B\", cornerRadius: [1, 1, 1, 1]})",
+      "ConnResearch_14=I(frame, {type: \"rectangle\", name: \"Conn: Research\u2192Aggregator (horiz2)\", x: 960, y: 341, width: 15, height: 2, fill: \"#F59E0B\", cornerRadius: [1, 1, 1, 1]})",
+      "ConnAnalyzer_15=I(frame, {type: \"rectangle\", name: \"Conn: Analyzer\u2192Aggregator (horiz)\", x: 945, y: 430, width: 16, height: 2, fill: \"#F59E0B\", cornerRadius: [1, 1, 1, 1]})",
+      "ConnAnalyzer_16=I(frame, {type: \"rectangle\", name: \"Conn: Analyzer\u2192Aggregator (vert)\", x: 960, y: 342, width: 2, height: 90, fill: \"#F59E0B\", cornerRadius: [1, 1, 1, 1]})",
+      "ConnAnalyzer_17=I(frame, {type: \"rectangle\", name: \"Conn: Analyzer\u2192Aggregator (horiz2)\", x: 960, y: 341, width: 15, height: 2, fill: \"#F59E0B\", cornerRadius: [1, 1, 1, 1]})",
+      "ArrowInputPl_18=I(frame, {type: \"rectangle\", name: \"Arrow: Input\u2192Planner\", x: 451, y: 338, width: 8, height: 8, fill: \"#10B981\"})",
+      "ArrowPlanner_19=I(frame, {type: \"rectangle\", name: \"Arrow: Planner\u2192Router\", x: 621, y: 338, width: 8, height: 8, fill: \"#10B981\"})",
+      "ArrowRouterR_20=I(frame, {type: \"rectangle\", name: \"Arrow: Router\u2192Research\", x: 801, y: 250, width: 8, height: 8, fill: \"#10B981\"})",
+      "ArrowRouterC_21=I(frame, {type: \"rectangle\", name: \"Arrow: Router\u2192Code\", x: 801, y: 338, width: 8, height: 8, fill: \"#10B981\"})",
+      "ArrowRouterA_22=I(frame, {type: \"rectangle\", name: \"Arrow: Router\u2192Analyzer\", x: 801, y: 426, width: 8, height: 8, fill: \"#10B981\"})",
+      "ArrowResearc_23=I(frame, {type: \"rectangle\", name: \"Arrow: Research\u2192Aggregator\", x: 971, y: 338, width: 8, height: 8, fill: \"#F59E0B\"})",
+      "ArrowCodeAgg_24=I(frame, {type: \"rectangle\", name: \"Arrow: Code\u2192Aggregator\", x: 971, y: 338, width: 8, height: 8, fill: \"#F59E0B\"})"
+    ],
+    [
+      "ArrowAnalyze_25=I(frame, {type: \"rectangle\", name: \"Arrow: Analyzer\u2192Aggregator\", x: 971, y: 338, width: 8, height: 8, fill: \"#F59E0B\"})",
+      "ArrowAggrega_26=I(frame, {type: \"rectangle\", name: \"Arrow: Aggregator\u2192Output\", x: 1136, y: 338, width: 8, height: 8, fill: \"#4B5563\"})"
+    ]
+  ],
+  "total_ops": 27
+}

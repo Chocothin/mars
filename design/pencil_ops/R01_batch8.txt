@@ -1,0 +1,6 @@
+HealthProvid_175=I("rqHD1", {type: "text", name: "Health Provider Label", x: 1240, y: 588, width: 100, height: 100, content: "Provider", fontSize: 12, fontFamily: "Inter", fontWeight: 400, fill: "#64748B"})
+HealthProvid_176=I("rqHD1", {type: "text", name: "Health Provider Value", x: 1370, y: 588, width: 100, height: 100, content: "Connected", fontSize: 12, fontFamily: "Inter", fontWeight: 600, fill: "#10B981"})
+HealthMCPLab_177=I("rqHD1", {type: "text", name: "Health MCP Label", x: 1240, y: 610, width: 100, height: 100, content: "MCP Servers", fontSize: 12, fontFamily: "Inter", fontWeight: 400, fill: "#64748B"})
+HealthMCPVal_178=I("rqHD1", {type: "text", name: "Health MCP Value", x: 1370, y: 610, width: 100, height: 100, content: "5/5 Online", fontSize: 12, fontFamily: "Inter", fontWeight: 600, fill: "#10B981"})
+HealthMemory_179=I("rqHD1", {type: "text", name: "Health Memory Label", x: 1240, y: 632, width: 100, height: 100, content: "Memory", fontSize: 12, fontFamily: "Inter", fontWeight: 400, fill: "#64748B"})
+HealthMemory_180=I("rqHD1", {type: "text", name: "Health Memory Value", x: 1362, y: 632, width: 100, height: 100, content: "1.2 GB", fontSize: 12, fontFamily: "Inter", fontWeight: 600, fill: "#F59E0B"})

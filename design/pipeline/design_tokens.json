@@ -1,0 +1,922 @@
+{
+  "$schema": "mars-tokens-v1",
+  "version": "1.0.0",
+  "extractedFrom": [
+    "Pilot",
+    "R01",
+    "R02",
+    "R03",
+    "R04",
+    "R05",
+    "R06",
+    "R07",
+    "R08",
+    "R09",
+    "R10",
+    "R11",
+    "R12",
+    "R13",
+    "R14",
+    "R15",
+    "R16",
+    "R17"
+  ],
+  "extractedAt": "2026-03-04T11:01:54.384376+00:00",
+  "stats": {
+    "totalFiles": 18,
+    "totalDetails": 2788,
+    "totalColorTokens": 24,
+    "totalTypographyTokens": 9,
+    "totalSpacingTokens": 9,
+    "totalRadiusTokens": 8
+  },
+  "colors": {
+    "text-muted": {
+      "hex": "#64748B",
+      "rgb": [
+        100,
+        116,
+        139
+      ],
+      "tailwindClass": "text-mars-muted",
+      "cssVariable": "--color-text-muted",
+      "tailwindRef": "text-muted",
+      "occurrences": 454,
+      "usedIn": {
+        "fills": 66,
+        "strokes": 0,
+        "texts": 388
+      },
+      "filesUsed": 17,
+      "clusteredFrom": []
+    },
+    "text-secondary": {
+      "hex": "#94A3B8",
+      "rgb": [
+        148,
+        163,
+        184
+      ],
+      "tailwindClass": "text-mars-secondary",
+      "cssVariable": "--color-text-secondary",
+      "tailwindRef": "text-secondary",
+      "occurrences": 410,
+      "usedIn": {
+        "fills": 37,
+        "strokes": 0,
+        "texts": 373
+      },
+      "filesUsed": 17,
+      "clusteredFrom": []
+    },
+    "text-primary": {
+      "hex": "#F1F5F9",
+      "rgb": [
+        241,
+        245,
+        249
+      ],
+      "tailwindClass": "text-mars-primary",
+      "cssVariable": "--color-text-primary",
+      "tailwindRef": "text-primary",
+      "occurrences": 330,
+      "usedIn": {
+        "fills": 24,
+        "strokes": 0,
+        "texts": 306
+      },
+      "filesUsed": 17,
+      "clusteredFrom": []
+    },
+    "surface-card": {
+      "hex": "#1A1F35",
+      "rgb": [
+        26,
+        31,
+        53
+      ],
+      "tailwindClass": "bg-mars-card",
+      "cssVariable": "--color-surface-card",
+      "tailwindRef": "mars-card",
+      "occurrences": 251,
+      "usedIn": {
+        "fills": 251,
+        "strokes": 0,
+        "texts": 0
+      },
+      "filesUsed": 17,
+      "clusteredFrom": []
+    },
+    "border-default": {
+      "hex": "#1E293B",
+      "rgb": [
+        30,
+        41,
+        59
+      ],
+      "tailwindClass": "border-mars-default",
+      "cssVariable": "--color-border-default",
+      "tailwindRef": "mars-border",
+      "occurrences": 223,
+      "usedIn": {
+        "fills": 130,
+        "strokes": 93,
+        "texts": 0
+      },
+      "filesUsed": 17,
+      "clusteredFrom": []
+    },
+    "text-dim": {
+      "hex": "#4B5563",
+      "rgb": [
+        75,
+        85,
+        99
+      ],
+      "tailwindClass": "text-mars-dim",
+      "cssVariable": "--color-text-dim",
+      "tailwindRef": "text-dim",
+      "occurrences": 197,
+      "usedIn": {
+        "fills": 63,
+        "strokes": 0,
+        "texts": 134
+      },
+      "filesUsed": 18,
+      "clusteredFrom": []
+    },
+    "accent-success": {
+      "hex": "#10B981",
+      "rgb": [
+        16,
+        185,
+        129
+      ],
+      "tailwindClass": "text-mars-accent-success",
+      "cssVariable": "--color-accent-success",
+      "tailwindRef": "accent-green",
+      "occurrences": 190,
+      "usedIn": {
+        "fills": 88,
+        "strokes": 0,
+        "texts": 102
+      },
+      "filesUsed": 18,
+      "clusteredFrom": []
+    },
+    "accent-primary": {
+      "hex": "#6366F1",
+      "rgb": [
+        99,
+        102,
+        241
+      ],
+      "tailwindClass": "text-mars-accent-primary",
+      "cssVariable": "--color-accent-primary",
+      "tailwindRef": "accent-primary",
+      "occurrences": 178,
+      "usedIn": {
+        "fills": 108,
+        "strokes": 1,
+        "texts": 69
+      },
+      "filesUsed": 17,
+      "clusteredFrom": []
+    },
+    "surface-primary": {
+      "hex": "#111524",
+      "rgb": [
+        17,
+        21,
+        36
+      ],
+      "tailwindClass": "bg-mars-primary",
+      "cssVariable": "--color-surface-primary",
+      "tailwindRef": "mars-surface",
+      "occurrences": 144,
+      "usedIn": {
+        "fills": 144,
+        "strokes": 0,
+        "texts": 0
+      },
+      "filesUsed": 17,
+      "clusteredFrom": []
+    },
+    "accent-warning": {
+      "hex": "#F59E0B",
+      "rgb": [
+        245,
+        158,
+        11
+      ],
+      "tailwindClass": "text-mars-accent-warning",
+      "cssVariable": "--color-accent-warning",
+      "tailwindRef": "accent-amber",
+      "occurrences": 116,
+      "usedIn": {
+        "fills": 49,
+        "strokes": 4,
+        "texts": 63
+      },
+      "filesUsed": 16,
+      "clusteredFrom": []
+    },
+    "surface-secondary": {
+      "hex": "#0E1019",
+      "rgb": [
+        14,
+        16,
+        25
+      ],
+      "tailwindClass": "bg-mars-secondary",
+      "cssVariable": "--color-surface-secondary",
+      "tailwindRef": "mars-canvas",
+      "occurrences": 90,
+      "usedIn": {
+        "fills": 90,
+        "strokes": 0,
+        "texts": 0
+      },
+      "filesUsed": 17,
+      "clusteredFrom": []
+    },
+    "border-subtle": {
+      "hex": "#2A2F42",
+      "rgb": [
+        42,
+        47,
+        66
+      ],
+      "tailwindClass": "border-mars-subtle",
+      "cssVariable": "--color-border-subtle",
+      "tailwindRef": "mars-border-subtle",
+      "occurrences": 80,
+      "usedIn": {
+        "fills": 68,
+        "strokes": 12,
+        "texts": 0
+      },
+      "filesUsed": 14,
+      "clusteredFrom": []
+    },
+    "accent-error": {
+      "hex": "#EF4444",
+      "rgb": [
+        239,
+        68,
+        68
+      ],
+      "tailwindClass": "text-mars-accent-error",
+      "cssVariable": "--color-accent-error",
+      "tailwindRef": "accent-red",
+      "occurrences": 51,
+      "usedIn": {
+        "fills": 17,
+        "strokes": 0,
+        "texts": 34
+      },
+      "filesUsed": 12,
+      "clusteredFrom": []
+    },
+    "bg-app": {
+      "hex": "#0B0D14",
+      "rgb": [
+        11,
+        13,
+        20
+      ],
+      "tailwindClass": "bg-mars-app",
+      "cssVariable": "--color-bg-app",
+      "tailwindRef": "mars-bg",
+      "occurrences": 42,
+      "usedIn": {
+        "fills": 42,
+        "strokes": 0,
+        "texts": 0
+      },
+      "filesUsed": 18,
+      "clusteredFrom": []
+    },
+    "text-white": {
+      "hex": "#FFFFFF",
+      "rgb": [
+        255,
+        255,
+        255
+      ],
+      "tailwindClass": "text-mars-white",
+      "cssVariable": "--color-text-white",
+      "tailwindRef": "text-white",
+      "occurrences": 41,
+      "usedIn": {
+        "fills": 4,
+        "strokes": 0,
+        "texts": 37
+      },
+      "filesUsed": 17,
+      "clusteredFrom": []
+    },
+    "badge-green-bg": {
+      "hex": "#132A20",
+      "rgb": [
+        19,
+        42,
+        32
+      ],
+      "tailwindClass": "bg-mars-badge-green-bg",
+      "cssVariable": "--color-badge-green-bg",
+      "tailwindRef": "badge-green",
+      "occurrences": 40,
+      "usedIn": {
+        "fills": 40,
+        "strokes": 0,
+        "texts": 0
+      },
+      "filesUsed": 14,
+      "clusteredFrom": []
+    },
+    "accent-info": {
+      "hex": "#06B6D4",
+      "rgb": [
+        6,
+        182,
+        212
+      ],
+      "tailwindClass": "text-mars-accent-info",
+      "cssVariable": "--color-accent-info",
+      "tailwindRef": "accent-cyan",
+      "occurrences": 38,
+      "usedIn": {
+        "fills": 9,
+        "strokes": 0,
+        "texts": 29
+      },
+      "filesUsed": 12,
+      "clusteredFrom": []
+    },
+    "badge-primary-bg": {
+      "hex": "#1E1E3F",
+      "rgb": [
+        30,
+        30,
+        63
+      ],
+      "tailwindClass": "bg-mars-badge-primary-bg",
+      "cssVariable": "--color-badge-primary-bg",
+      "tailwindRef": "badge-primary",
+      "occurrences": 31,
+      "usedIn": {
+        "fills": 31,
+        "strokes": 0,
+        "texts": 0
+      },
+      "filesUsed": 10,
+      "clusteredFrom": []
+    },
+    "accent-purple": {
+      "hex": "#8B5CF6",
+      "rgb": [
+        139,
+        92,
+        246
+      ],
+      "tailwindClass": "text-mars-accent-purple",
+      "cssVariable": "--color-accent-purple",
+      "tailwindRef": "accent-purple",
+      "occurrences": 20,
+      "usedIn": {
+        "fills": 13,
+        "strokes": 0,
+        "texts": 7
+      },
+      "filesUsed": 8,
+      "clusteredFrom": []
+    },
+    "badge-cyan-bg": {
+      "hex": "#0D2A2F",
+      "rgb": [
+        13,
+        42,
+        47
+      ],
+      "tailwindClass": "bg-mars-badge-cyan-bg",
+      "cssVariable": "--color-badge-cyan-bg",
+      "tailwindRef": "badge-cyan",
+      "occurrences": 20,
+      "usedIn": {
+        "fills": 20,
+        "strokes": 0,
+        "texts": 0
+      },
+      "filesUsed": 8,
+      "clusteredFrom": []
+    },
+    "badge-amber-bg": {
+      "hex": "#2A2410",
+      "rgb": [
+        42,
+        36,
+        16
+      ],
+      "tailwindClass": "bg-mars-badge-amber-bg",
+      "cssVariable": "--color-badge-amber-bg",
+      "tailwindRef": "badge-amber",
+      "occurrences": 16,
+      "usedIn": {
+        "fills": 16,
+        "strokes": 0,
+        "texts": 0
+      },
+      "filesUsed": 10,
+      "clusteredFrom": []
+    },
+    "badge-red-bg": {
+      "hex": "#2A1414",
+      "rgb": [
+        42,
+        20,
+        20
+      ],
+      "tailwindClass": "bg-mars-badge-red-bg",
+      "cssVariable": "--color-badge-red-bg",
+      "tailwindRef": "badge-red",
+      "occurrences": 12,
+      "usedIn": {
+        "fills": 12,
+        "strokes": 0,
+        "texts": 0
+      },
+      "filesUsed": 7,
+      "clusteredFrom": []
+    },
+    "accent-pink": {
+      "hex": "#EC4899",
+      "rgb": [
+        236,
+        72,
+        153
+      ],
+      "tailwindClass": "text-mars-accent-pink",
+      "cssVariable": "--color-accent-pink",
+      "tailwindRef": "accent-pink",
+      "occurrences": 11,
+      "usedIn": {
+        "fills": 6,
+        "strokes": 0,
+        "texts": 5
+      },
+      "filesUsed": 5,
+      "clusteredFrom": []
+    },
+    "accent-orange": {
+      "hex": "#F97316",
+      "rgb": [
+        249,
+        115,
+        22
+      ],
+      "tailwindClass": "text-mars-accent-orange",
+      "cssVariable": "--color-accent-orange",
+      "tailwindRef": "accent-orange",
+      "occurrences": 6,
+      "usedIn": {
+        "fills": 5,
+        "strokes": 0,
+        "texts": 1
+      },
+      "filesUsed": 3,
+      "clusteredFrom": []
+    }
+  },
+  "typography": {
+    "heading-xl": {
+      "fontSize": 24,
+      "fontWeight": 700,
+      "lineHeight": 1.2,
+      "fontFamily": "Source Sans Pro",
+      "tailwindClasses": "text-2xl font-bold",
+      "cssProperties": {
+        "font-size": "24px",
+        "font-weight": "700",
+        "line-height": "1.2",
+        "font-family": "'Source Sans Pro', system-ui, sans-serif"
+      },
+      "occurrences": 10
+    },
+    "heading-lg": {
+      "fontSize": 20,
+      "fontWeight": 700,
+      "lineHeight": 1.2,
+      "fontFamily": "Source Sans Pro",
+      "tailwindClasses": "text-xl font-bold",
+      "cssProperties": {
+        "font-size": "20px",
+        "font-weight": "700",
+        "line-height": "1.2",
+        "font-family": "'Source Sans Pro', system-ui, sans-serif"
+      },
+      "occurrences": 24
+    },
+    "heading-md": {
+      "fontSize": 16,
+      "fontWeight": 700,
+      "lineHeight": 1.2,
+      "fontFamily": "Source Sans Pro",
+      "tailwindClasses": "text-lg font-bold",
+      "cssProperties": {
+        "font-size": "16px",
+        "font-weight": "700",
+        "line-height": "1.2",
+        "font-family": "'Source Sans Pro', system-ui, sans-serif"
+      },
+      "occurrences": 59
+    },
+    "body-lg": {
+      "fontSize": 14,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "Source Sans Pro",
+      "tailwindClasses": "text-base font-normal",
+      "cssProperties": {
+        "font-size": "14px",
+        "font-weight": "400",
+        "line-height": "1.2",
+        "font-family": "'Source Sans Pro', system-ui, sans-serif"
+      },
+      "occurrences": 227,
+      "variants": {
+        "normal": {
+          "fontWeight": 400,
+          "tailwindClasses": "text-base font-normal",
+          "occurrences": 133
+        },
+        "semibold": {
+          "fontWeight": 600,
+          "tailwindClasses": "text-base font-semibold",
+          "occurrences": 73
+        },
+        "bold": {
+          "fontWeight": 700,
+          "tailwindClasses": "text-base font-bold",
+          "occurrences": 21
+        }
+      }
+    },
+    "body": {
+      "fontSize": 13,
+      "fontWeight": 600,
+      "lineHeight": 1.2,
+      "fontFamily": "Source Sans Pro",
+      "tailwindClasses": "text-[13px] font-semibold",
+      "cssProperties": {
+        "font-size": "13px",
+        "font-weight": "600",
+        "line-height": "1.2",
+        "font-family": "'Source Sans Pro', system-ui, sans-serif"
+      },
+      "occurrences": 52,
+      "variants": {
+        "semibold": {
+          "fontWeight": 600,
+          "tailwindClasses": "text-[13px] font-semibold",
+          "occurrences": 23
+        },
+        "normal": {
+          "fontWeight": 400,
+          "tailwindClasses": "text-[13px] font-normal",
+          "occurrences": 15
+        },
+        "bold": {
+          "fontWeight": 700,
+          "tailwindClasses": "text-[13px] font-bold",
+          "occurrences": 7
+        },
+        "medium": {
+          "fontWeight": 500,
+          "tailwindClasses": "text-[13px] font-medium",
+          "occurrences": 7
+        }
+      }
+    },
+    "body-sm": {
+      "fontSize": 12,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "Source Sans Pro",
+      "tailwindClasses": "text-sm font-normal",
+      "cssProperties": {
+        "font-size": "12px",
+        "font-weight": "400",
+        "line-height": "1.2",
+        "font-family": "'Source Sans Pro', system-ui, sans-serif"
+      },
+      "occurrences": 443,
+      "variants": {
+        "normal": {
+          "fontWeight": 400,
+          "tailwindClasses": "text-sm font-normal",
+          "occurrences": 228
+        },
+        "semibold": {
+          "fontWeight": 600,
+          "tailwindClasses": "text-sm font-semibold",
+          "occurrences": 203
+        },
+        "bold": {
+          "fontWeight": 700,
+          "tailwindClasses": "text-sm font-bold",
+          "occurrences": 12
+        }
+      }
+    },
+    "label": {
+      "fontSize": 11,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "Source Sans Pro",
+      "tailwindClasses": "text-mono font-normal",
+      "cssProperties": {
+        "font-size": "11px",
+        "font-weight": "400",
+        "line-height": "1.2",
+        "font-family": "'Source Sans Pro', system-ui, sans-serif"
+      },
+      "occurrences": 289,
+      "variants": {
+        "normal": {
+          "fontWeight": 400,
+          "tailwindClasses": "text-mono font-normal",
+          "occurrences": 198
+        },
+        "semibold": {
+          "fontWeight": 600,
+          "tailwindClasses": "text-mono font-semibold",
+          "occurrences": 68
+        },
+        "bold": {
+          "fontWeight": 700,
+          "tailwindClasses": "text-mono font-bold",
+          "occurrences": 23
+        }
+      }
+    },
+    "caption": {
+      "fontSize": 10,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "Source Sans Pro",
+      "tailwindClasses": "text-xs font-normal",
+      "cssProperties": {
+        "font-size": "10px",
+        "font-weight": "400",
+        "line-height": "1.2",
+        "font-family": "'Source Sans Pro', system-ui, sans-serif"
+      },
+      "occurrences": 436,
+      "variants": {
+        "normal": {
+          "fontWeight": 400,
+          "tailwindClasses": "text-xs font-normal",
+          "occurrences": 230
+        },
+        "bold": {
+          "fontWeight": 700,
+          "tailwindClasses": "text-xs font-bold",
+          "occurrences": 117
+        },
+        "semibold": {
+          "fontWeight": 600,
+          "tailwindClasses": "text-xs font-semibold",
+          "occurrences": 89
+        }
+      }
+    },
+    "caption-xs": {
+      "fontSize": 8,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "Source Sans Pro",
+      "tailwindClasses": "text-[8px] font-normal",
+      "cssProperties": {
+        "font-size": "8px",
+        "font-weight": "400",
+        "line-height": "1.2",
+        "font-family": "'Source Sans Pro', system-ui, sans-serif"
+      },
+      "occurrences": 5
+    }
+  },
+  "spacing": {
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 20,
+    "2xl": 24,
+    "3xl": 32,
+    "40px": 40,
+    "48px": 48
+  },
+  "spacingDetailed": {
+    "xs": {
+      "value": 4,
+      "px": "4px",
+      "rem": "0.250rem",
+      "tailwindClass": "gap-1",
+      "occurrences": 199
+    },
+    "sm": {
+      "value": 8,
+      "px": "8px",
+      "rem": "0.500rem",
+      "tailwindClass": "gap-2",
+      "occurrences": 172
+    },
+    "md": {
+      "value": 12,
+      "px": "12px",
+      "rem": "0.750rem",
+      "tailwindClass": "gap-3",
+      "occurrences": 90
+    },
+    "lg": {
+      "value": 16,
+      "px": "16px",
+      "rem": "1.000rem",
+      "tailwindClass": "gap-4",
+      "occurrences": 55
+    },
+    "xl": {
+      "value": 20,
+      "px": "20px",
+      "rem": "1.250rem",
+      "tailwindClass": "gap-5",
+      "occurrences": 52
+    },
+    "2xl": {
+      "value": 24,
+      "px": "24px",
+      "rem": "1.500rem",
+      "tailwindClass": "gap-6",
+      "occurrences": 29
+    },
+    "3xl": {
+      "value": 32,
+      "px": "32px",
+      "rem": "2.000rem",
+      "tailwindClass": "gap-8",
+      "occurrences": 26
+    },
+    "40px": {
+      "value": 40,
+      "px": "40px",
+      "rem": "2.500rem",
+      "tailwindClass": "gap-10",
+      "occurrences": 17
+    },
+    "48px": {
+      "value": 48,
+      "px": "48px",
+      "rem": "3.000rem",
+      "tailwindClass": "gap-12",
+      "occurrences": 17
+    }
+  },
+  "radius": {
+    "xs": 2,
+    "sm": 4,
+    "md": 6,
+    "lg": 8,
+    "xl": 10,
+    "badge": 11,
+    "2xl": 12,
+    "3xl": 16
+  },
+  "radiusDetailed": {
+    "xs": {
+      "value": 2,
+      "px": "2px",
+      "rem": "0.125rem",
+      "tailwindClass": "rounded-[2px]",
+      "occurrences": 122
+    },
+    "sm": {
+      "value": 4,
+      "px": "4px",
+      "rem": "0.250rem",
+      "tailwindClass": "rounded-[4px]",
+      "occurrences": 41
+    },
+    "md": {
+      "value": 6,
+      "px": "6px",
+      "rem": "0.375rem",
+      "tailwindClass": "rounded-[6px]",
+      "occurrences": 277
+    },
+    "lg": {
+      "value": 8,
+      "px": "8px",
+      "rem": "0.500rem",
+      "tailwindClass": "rounded-[8px]",
+      "occurrences": 142
+    },
+    "xl": {
+      "value": 10,
+      "px": "10px",
+      "rem": "0.625rem",
+      "tailwindClass": "rounded-[10px]",
+      "occurrences": 54
+    },
+    "badge": {
+      "value": 11,
+      "px": "11px",
+      "rem": "0.688rem",
+      "tailwindClass": "rounded-[11px]",
+      "occurrences": 62
+    },
+    "2xl": {
+      "value": 12,
+      "px": "12px",
+      "rem": "0.750rem",
+      "tailwindClass": "rounded-[12px]",
+      "occurrences": 19
+    },
+    "3xl": {
+      "value": 16,
+      "px": "16px",
+      "rem": "1.000rem",
+      "tailwindClass": "rounded-[16px]",
+      "occurrences": 4
+    }
+  },
+  "tailwindMapping": {
+    "cssVariables": {
+      "--color-text-muted": "#64748B",
+      "--color-text-secondary": "#94A3B8",
+      "--color-text-primary": "#F1F5F9",
+      "--color-surface-card": "#1A1F35",
+      "--color-border-default": "#1E293B",
+      "--color-text-dim": "#4B5563",
+      "--color-accent-success": "#10B981",
+      "--color-accent-primary": "#6366F1",
+      "--color-surface-primary": "#111524",
+      "--color-accent-warning": "#F59E0B",
+      "--color-surface-secondary": "#0E1019",
+      "--color-border-subtle": "#2A2F42",
+      "--color-accent-error": "#EF4444",
+      "--color-bg-app": "#0B0D14",
+      "--color-text-white": "#FFFFFF",
+      "--color-badge-green-bg": "#132A20",
+      "--color-accent-info": "#06B6D4",
+      "--color-badge-primary-bg": "#1E1E3F",
+      "--color-accent-purple": "#8B5CF6",
+      "--color-badge-cyan-bg": "#0D2A2F",
+      "--color-badge-amber-bg": "#2A2410",
+      "--color-badge-red-bg": "#2A1414",
+      "--color-accent-pink": "#EC4899",
+      "--color-accent-orange": "#F97316"
+    },
+    "tailwindExtend": {
+      "colors": {
+        "mars": {},
+        "text": {
+          "muted": "var(--color-text-muted)",
+          "secondary": "var(--color-text-secondary)",
+          "primary": "var(--color-text-primary)",
+          "dim": "var(--color-text-dim)",
+          "white": "var(--color-text-white)"
+        },
+        "surface": {
+          "card": "var(--color-surface-card)",
+          "primary": "var(--color-surface-primary)",
+          "secondary": "var(--color-surface-secondary)"
+        },
+        "border": {
+          "default": "var(--color-border-default)",
+          "subtle": "var(--color-border-subtle)"
+        },
+        "accent": {
+          "success": "var(--color-accent-success)",
+          "primary": "var(--color-accent-primary)",
+          "warning": "var(--color-accent-warning)",
+          "error": "var(--color-accent-error)",
+          "info": "var(--color-accent-info)",
+          "purple": "var(--color-accent-purple)",
+          "pink": "var(--color-accent-pink)",
+          "orange": "var(--color-accent-orange)"
+        },
+        "bg": {
+          "app": "var(--color-bg-app)"
+        },
+        "badge": {
+          "green-bg": "var(--color-badge-green-bg)",
+          "primary-bg": "var(--color-badge-primary-bg)",
+          "cyan-bg": "var(--color-badge-cyan-bg)",
+          "amber-bg": "var(--color-badge-amber-bg)",
+          "red-bg": "var(--color-badge-red-bg)"
+        }
+      }
+    }
+  }
+}

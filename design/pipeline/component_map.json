@@ -1,0 +1,421 @@
+{
+  "$schema": "component_map",
+  "version": "1.0.0",
+  "generatedAt": "2026-03-04T07:47:54.256824+00:00",
+  "shared": {
+    "nav-item": {
+      "irComponentId": "nav-item",
+      "reactName": "NavItem",
+      "filePath": "src/generated/components/nav-item.tsx",
+      "propsInterface": "NavItemProps",
+      "shadcnDependencies": [],
+      "lucideIcons": [],
+      "usedOnPages": [
+        "/agents",
+        "/dag",
+        "/mcp",
+        "/mcp/[id]/edit",
+        "/provider",
+        "/tasks/[id]"
+      ],
+      "status": "pending"
+    },
+    "row": {
+      "irComponentId": "row",
+      "reactName": "Row",
+      "filePath": "src/generated/components/row.tsx",
+      "propsInterface": "RowProps",
+      "shadcnDependencies": [],
+      "lucideIcons": [],
+      "usedOnPages": [
+        "/mcp",
+        "/tasks/[id]"
+      ],
+      "status": "pending"
+    },
+    "stat": {
+      "irComponentId": "stat",
+      "reactName": "Stat",
+      "filePath": "src/generated/components/stat.tsx",
+      "propsInterface": "StatProps",
+      "shadcnDependencies": [],
+      "lucideIcons": [],
+      "usedOnPages": [
+        "/memory",
+        "/skills"
+      ],
+      "status": "pending"
+    },
+    "component-m": {
+      "irComponentId": "component-m",
+      "reactName": "ComponentM",
+      "filePath": "src/generated/components/component-m.tsx",
+      "propsInterface": "ComponentMProps",
+      "shadcnDependencies": [],
+      "lucideIcons": [],
+      "usedOnPages": [
+        "/dag",
+        "/projects"
+      ],
+      "status": "pending"
+    }
+  },
+  "pages": {
+    "root": {
+      "route": "/",
+      "pageId": "pilot",
+      "pageComponent": "src/generated/pages/root/page.tsx",
+      "components": {
+        "component-cn": {
+          "irComponentId": "component-cn",
+          "reactName": "ComponentCn",
+          "filePath": "src/generated/components/component-cn.tsx",
+          "propsInterface": "ComponentCnProps",
+          "shadcnDependencies": [],
+          "lucideIcons": [],
+          "usedOnPages": [
+            "/"
+          ],
+          "status": "pending"
+        },
+        "component-mc": {
+          "irComponentId": "component-mc",
+          "reactName": "ComponentMc",
+          "filePath": "src/generated/components/component-mc.tsx",
+          "propsInterface": "ComponentMcProps",
+          "shadcnDependencies": [],
+          "lucideIcons": [],
+          "usedOnPages": [
+            "/"
+          ],
+          "status": "pending"
+        },
+        "component-sc": {
+          "irComponentId": "component-sc",
+          "reactName": "ComponentSc",
+          "filePath": "src/generated/components/component-sc.tsx",
+          "propsInterface": "ComponentScProps",
+          "shadcnDependencies": [],
+          "lucideIcons": [],
+          "usedOnPages": [
+            "/"
+          ],
+          "status": "pending"
+        },
+        "nav-item-text": {
+          "irComponentId": "nav-item-text",
+          "reactName": "NavItemText",
+          "filePath": "src/generated/components/nav-item-text.tsx",
+          "propsInterface": "NavItemTextProps",
+          "shadcnDependencies": [],
+          "lucideIcons": [],
+          "usedOnPages": [
+            "/"
+          ],
+          "status": "pending"
+        }
+      }
+    },
+    "app-shell": {
+      "route": "/app-shell",
+      "pageId": "r01",
+      "pageComponent": "src/generated/pages/app-shell/page.tsx",
+      "components": {
+        "component-pc": {
+          "irComponentId": "component-pc",
+          "reactName": "ComponentPc",
+          "filePath": "src/generated/components/component-pc.tsx",
+          "propsInterface": "ComponentPcProps",
+          "shadcnDependencies": [],
+          "lucideIcons": [],
+          "usedOnPages": [
+            "/app-shell"
+          ],
+          "status": "pending"
+        },
+        "component-a": {
+          "irComponentId": "component-a",
+          "reactName": "ComponentA",
+          "filePath": "src/generated/components/component-a.tsx",
+          "propsInterface": "ComponentAProps",
+          "shadcnDependencies": [],
+          "lucideIcons": [],
+          "usedOnPages": [
+            "/app-shell"
+          ],
+          "status": "pending"
+        },
+        "project-card": {
+          "irComponentId": "project-card",
+          "reactName": "ProjectCard",
+          "filePath": "src/generated/components/project-card.tsx",
+          "propsInterface": "ProjectCardProps",
+          "shadcnDependencies": [],
+          "lucideIcons": [],
+          "usedOnPages": [
+            "/app-shell"
+          ],
+          "status": "pending"
+        }
+      }
+    },
+    "tasks": {
+      "route": "/tasks",
+      "pageId": "r02",
+      "pageComponent": "src/generated/pages/tasks/page.tsx",
+      "components": {}
+    },
+    "agents": {
+      "route": "/agents",
+      "pageId": "r03",
+      "pageComponent": "src/generated/pages/agents/page.tsx",
+      "components": {
+        "agent-card": {
+          "irComponentId": "agent-card",
+          "reactName": "AgentCard",
+          "filePath": "src/generated/components/agent-card.tsx",
+          "propsInterface": "AgentCardProps",
+          "shadcnDependencies": [],
+          "lucideIcons": [],
+          "usedOnPages": [
+            "/agents"
+          ],
+          "status": "pending"
+        }
+      }
+    },
+    "mcp": {
+      "route": "/mcp",
+      "pageId": "r04",
+      "pageComponent": "src/generated/pages/mcp/page.tsx",
+      "components": {
+        "log": {
+          "irComponentId": "log",
+          "reactName": "Log",
+          "filePath": "src/generated/components/log.tsx",
+          "propsInterface": "LogProps",
+          "shadcnDependencies": [],
+          "lucideIcons": [],
+          "usedOnPages": [
+            "/mcp"
+          ],
+          "status": "pending"
+        }
+      }
+    },
+    "memory": {
+      "route": "/memory",
+      "pageId": "r05",
+      "pageComponent": "src/generated/pages/memory/page.tsx",
+      "components": {}
+    },
+    "skills": {
+      "route": "/skills",
+      "pageId": "r06",
+      "pageComponent": "src/generated/pages/skills/page.tsx",
+      "components": {
+        "activity": {
+          "irComponentId": "activity",
+          "reactName": "Activity",
+          "filePath": "src/generated/components/activity.tsx",
+          "propsInterface": "ActivityProps",
+          "shadcnDependencies": [],
+          "lucideIcons": [],
+          "usedOnPages": [
+            "/skills"
+          ],
+          "status": "pending"
+        },
+        "cat": {
+          "irComponentId": "cat",
+          "reactName": "Cat",
+          "filePath": "src/generated/components/cat.tsx",
+          "propsInterface": "CatProps",
+          "shadcnDependencies": [],
+          "lucideIcons": [],
+          "usedOnPages": [
+            "/skills"
+          ],
+          "status": "pending"
+        }
+      }
+    },
+    "provider": {
+      "route": "/provider",
+      "pageId": "r07",
+      "pageComponent": "src/generated/pages/provider/page.tsx",
+      "components": {
+        "usage": {
+          "irComponentId": "usage",
+          "reactName": "Usage",
+          "filePath": "src/generated/components/usage.tsx",
+          "propsInterface": "UsageProps",
+          "shadcnDependencies": [],
+          "lucideIcons": [],
+          "usedOnPages": [
+            "/provider"
+          ],
+          "status": "pending"
+        },
+        "component-r": {
+          "irComponentId": "component-r",
+          "reactName": "ComponentR",
+          "filePath": "src/generated/components/component-r.tsx",
+          "propsInterface": "ComponentRProps",
+          "shadcnDependencies": [],
+          "lucideIcons": [],
+          "usedOnPages": [
+            "/provider"
+          ],
+          "status": "pending"
+        },
+        "provider-card": {
+          "irComponentId": "provider-card",
+          "reactName": "ProviderCard",
+          "filePath": "src/generated/components/provider-card.tsx",
+          "propsInterface": "ProviderCardProps",
+          "shadcnDependencies": [],
+          "lucideIcons": [],
+          "usedOnPages": [
+            "/provider"
+          ],
+          "status": "pending"
+        },
+        "usage-card": {
+          "irComponentId": "usage-card",
+          "reactName": "UsageCard",
+          "filePath": "src/generated/components/usage-card.tsx",
+          "propsInterface": "UsageCardProps",
+          "shadcnDependencies": [],
+          "lucideIcons": [],
+          "usedOnPages": [
+            "/provider"
+          ],
+          "status": "pending"
+        }
+      }
+    },
+    "projects__id": {
+      "route": "/projects/[id]",
+      "pageId": "r08",
+      "pageComponent": "src/generated/pages/projects__id/page.tsx",
+      "components": {}
+    },
+    "tasks__id": {
+      "route": "/tasks/[id]",
+      "pageId": "r09",
+      "pageComponent": "src/generated/pages/tasks__id/page.tsx",
+      "components": {}
+    },
+    "agents__id": {
+      "route": "/agents/[id]",
+      "pageId": "r10",
+      "pageComponent": "src/generated/pages/agents__id/page.tsx",
+      "components": {
+        "mcp": {
+          "irComponentId": "mcp",
+          "reactName": "Mcp",
+          "filePath": "src/generated/components/mcp.tsx",
+          "propsInterface": "McpProps",
+          "shadcnDependencies": [],
+          "lucideIcons": [],
+          "usedOnPages": [
+            "/agents/[id]"
+          ],
+          "status": "pending"
+        },
+        "skill": {
+          "irComponentId": "skill",
+          "reactName": "Skill",
+          "filePath": "src/generated/components/skill.tsx",
+          "propsInterface": "SkillProps",
+          "shadcnDependencies": [],
+          "lucideIcons": [],
+          "usedOnPages": [
+            "/agents/[id]"
+          ],
+          "status": "pending"
+        }
+      }
+    },
+    "mcp__id__edit": {
+      "route": "/mcp/[id]/edit",
+      "pageId": "r11",
+      "pageComponent": "src/generated/pages/mcp__id__edit/page.tsx",
+      "components": {}
+    },
+    "projects__new": {
+      "route": "/projects/new",
+      "pageId": "r12",
+      "pageComponent": "src/generated/pages/projects__new/page.tsx",
+      "components": {}
+    },
+    "tasks__new": {
+      "route": "/tasks/new",
+      "pageId": "r13",
+      "pageComponent": "src/generated/pages/tasks__new/page.tsx",
+      "components": {}
+    },
+    "agents__new": {
+      "route": "/agents/new",
+      "pageId": "r14",
+      "pageComponent": "src/generated/pages/agents__new/page.tsx",
+      "components": {
+        "mcp-chip": {
+          "irComponentId": "mcp-chip",
+          "reactName": "McpChip",
+          "filePath": "src/generated/components/mcp-chip.tsx",
+          "propsInterface": "McpChipProps",
+          "shadcnDependencies": [],
+          "lucideIcons": [],
+          "usedOnPages": [
+            "/agents/new"
+          ],
+          "status": "pending"
+        },
+        "skill-chip": {
+          "irComponentId": "skill-chip",
+          "reactName": "SkillChip",
+          "filePath": "src/generated/components/skill-chip.tsx",
+          "propsInterface": "SkillChipProps",
+          "shadcnDependencies": [],
+          "lucideIcons": [],
+          "usedOnPages": [
+            "/agents/new"
+          ],
+          "status": "pending"
+        },
+        "tip-card": {
+          "irComponentId": "tip-card",
+          "reactName": "TipCard",
+          "filePath": "src/generated/components/tip-card.tsx",
+          "propsInterface": "TipCardProps",
+          "shadcnDependencies": [],
+          "lucideIcons": [],
+          "usedOnPages": [
+            "/agents/new"
+          ],
+          "status": "pending"
+        }
+      }
+    },
+    "dag": {
+      "route": "/dag",
+      "pageId": "r15",
+      "pageComponent": "src/generated/pages/dag/page.tsx",
+      "components": {}
+    },
+    "projects": {
+      "route": "/projects",
+      "pageId": "r16",
+      "pageComponent": "src/generated/pages/projects/page.tsx",
+      "components": {}
+    },
+    "settings": {
+      "route": "/settings",
+      "pageId": "r17",
+      "pageComponent": "src/generated/pages/settings/page.tsx",
+      "components": {}
+    }
+  }
+}

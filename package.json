@@ -1,0 +1,24 @@
+{
+  "name": "mars-server",
+  "version": "0.1.0",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "start": "bun src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "sync:opencode-mcp": "bun src/scripts/sync-opencode-mcp.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.53",
+    "@ai-sdk/mcp": "^1.0.23",
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "ai": "^6.0.108",
+    "zod": "^4.3.6"
+  }
+}

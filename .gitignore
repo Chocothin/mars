@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Python virtual environments
+src/summarizer/python/.venv/
+
+# OS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+
+# Build
+dist/
+
+# Environment
+.env
+.env.local
+
+# SQLite
+*.db
+*.db-journal
+
+# Temp
+tmp/

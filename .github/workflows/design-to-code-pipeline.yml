@@ -1,0 +1,59 @@
+name: Design To Code Pipeline
+
+on:
+  pull_request:
+    branches: ["*"]
+  workflow_dispatch:
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install frontend deps
+        run: npm ci
+        working-directory: frontend
+
+      - name: Step 1 - Verify deterministic extraction checksums
+        run: python3 design/extract_all.py --verify
+
+      - name: Step 2b - Extract tokens
+        run: python3 design/pipeline/extract_tokens.py
+
+      - name: Step 2c - Normalize IR
+        run: python3 design/pipeline/normalize_ir.py
+
+      - name: Step 3+4+5 - Generate and postprocess UI
+        run: npm run pipeline:generate
+        working-directory: frontend
+
+      - name: Lint
+        run: npm run lint
+        working-directory: frontend
+
+      - name: Typecheck and Build
+        run: npm run build
+        working-directory: frontend
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+        working-directory: frontend
+
+      - name: Step 6 - Visual regression gate
+        run: npm run test:visual
+        working-directory: frontend

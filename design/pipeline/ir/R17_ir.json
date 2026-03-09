@@ -1,0 +1,913 @@
+{
+  "$schema": "normalized_ir",
+  "version": "1.0.0",
+  "metadata": {
+    "pageId": "r17",
+    "pageName": "R17",
+    "routePath": "/settings",
+    "sourceFile": "extracted/R17_details.json",
+    "canvas": {
+      "width": 1440,
+      "height": 900
+    },
+    "shapeCount": 26,
+    "componentCount": 0,
+    "generatedAt": "2026-03-04T11:02:21.791686+00:00"
+  },
+  "appShell": {
+    "header": null,
+    "sidebar": null,
+    "main": {
+      "x": 220,
+      "y": 52,
+      "width": 1220,
+      "height": 848
+    },
+    "rightPanel": null
+  },
+  "root": {
+    "id": "page-r17",
+    "name": "r17",
+    "type": "page",
+    "sourceShapeIds": [
+      "c68bd62f-0632-40e1-a98f-826f1e8ff2fb"
+    ],
+    "layout": {
+      "display": "flex",
+      "direction": "column",
+      "width": {
+        "mode": "fixed",
+        "px": 1440
+      },
+      "height": {
+        "mode": "fixed",
+        "px": 900
+      }
+    },
+    "style": {},
+    "children": [
+      {
+        "id": "zone-main",
+        "name": "main",
+        "type": "zone",
+        "sourceShapeIds": [
+          "521711db-d5cf-4b23-bec5-974ddf8e4529",
+          "4da3d232-c548-4cba-ab1b-876a7260ef75",
+          "b660ddd2-6120-4284-bc53-f92196f2f3fc",
+          "3bffedb4-0baf-4d78-b736-1fb094572b7d",
+          "5127e4f8-23fc-4746-b019-7ce330378b06",
+          "6d204a36-f7d9-40f1-aef0-8dd727f0081e",
+          "18edd607-ea9f-4864-8673-3b4bacb2ad69",
+          "7eb363dd-39f0-4e63-8107-1b8686ebeedd",
+          "f07c2f2f-4e0f-4dc9-bad7-59f2c87a502b",
+          "6c5cbfb6-db0c-4a98-a9ed-9daac606adb5",
+          "bf8f2c28-fd48-40cd-aca8-cd56c5e2d3e9",
+          "eb549b2a-1c2a-4d65-ad62-920310d52e49",
+          "33cfb1bb-30d9-49b7-9362-86ed7a7cb67f",
+          "87e21207-efeb-4b5e-81e2-dd5384b06a06",
+          "0eea3214-3ef5-4439-9124-8771b17fe37c",
+          "0602139b-fff5-4db1-b710-4a9a77d91191",
+          "fd56788b-0bb2-48fd-be76-48a708315be8",
+          "99c2d11a-8c68-4c83-b0c5-6eb752b6061d",
+          "06104a8a-7e17-4548-af3a-70c0767a19c2",
+          "a0c9a224-4019-4f5d-9235-fe2836462d52",
+          "cfea10b3-fcfe-43eb-b69f-49018dcf4014",
+          "324cfd58-8525-41a0-a159-abaa3e93a3be",
+          "9ea238ce-2bf5-40e8-9cd2-e946dde57f13",
+          "2f04673a-b9b2-4354-95f7-042bbabbb83b",
+          "4c6735c3-3e58-482e-bea4-b2fdc9bb789e",
+          "10ff92a4-c68c-4085-9677-24aeb538b923"
+        ],
+        "layout": {
+          "display": "flex",
+          "direction": "column",
+          "width": {
+            "mode": "fixed",
+            "px": 1220
+          },
+          "height": {
+            "mode": "fixed",
+            "px": 848
+          },
+          "absolutePosition": {
+            "left": 220,
+            "top": 52
+          }
+        },
+        "style": {},
+        "children": [
+          {
+            "id": "a0c9a224-4019-4f5d-9235-fe2836462d52",
+            "name": "arrow:-router→research",
+            "type": "input",
+            "sourceShapeIds": [
+              "a0c9a224-4019-4f5d-9235-fe2836462d52"
+            ],
+            "layout": {
+              "display": "flex",
+              "direction": "column",
+              "width": {
+                "mode": "fixed",
+                "px": 8
+              },
+              "height": {
+                "mode": "fixed",
+                "px": 8
+              },
+              "absolutePosition": {
+                "left": 801,
+                "top": 250
+              }
+            },
+            "style": {
+              "bg": {
+                "hex": "#10B981"
+              }
+            },
+            "children": [],
+            "content": {
+              "placeholder": "arrow:-router→research"
+            }
+          },
+          {
+            "id": "18edd607-ea9f-4864-8673-3b4bacb2ad69",
+            "name": "conn:-router→research-(vert)",
+            "type": "divider",
+            "sourceShapeIds": [
+              "18edd607-ea9f-4864-8673-3b4bacb2ad69"
+            ],
+            "layout": {
+              "display": "flex",
+              "direction": "column",
+              "width": {
+                "mode": "fixed",
+                "px": 2
+              },
+              "height": {
+                "mode": "fixed",
+                "px": 89
+              },
+              "absolutePosition": {
+                "left": 784,
+                "top": 254
+              }
+            },
+            "style": {
+              "bg": {
+                "hex": "#10B981"
+              },
+              "borderRadius": 1
+            },
+            "children": []
+          },
+          {
+            "id": "7eb363dd-39f0-4e63-8107-1b8686ebeedd",
+            "name": "conn:-router→research-(horiz2)",
+            "type": "divider",
+            "sourceShapeIds": [
+              "7eb363dd-39f0-4e63-8107-1b8686ebeedd"
+            ],
+            "layout": {
+              "display": "flex",
+              "direction": "column",
+              "width": {
+                "mode": "fixed",
+                "px": 21
+              },
+              "height": {
+                "mode": "fixed",
+                "px": 2
+              },
+              "absolutePosition": {
+                "left": 784,
+                "top": 254
+              }
+            },
+            "style": {
+              "bg": {
+                "hex": "#10B981"
+              },
+              "borderRadius": 1
+            },
+            "children": []
+          },
+          {
+            "id": "eb549b2a-1c2a-4d65-ad62-920310d52e49",
+            "name": "conn:-research→aggregator-(horiz)",
+            "type": "divider",
+            "sourceShapeIds": [
+              "eb549b2a-1c2a-4d65-ad62-920310d52e49"
+            ],
+            "layout": {
+              "display": "flex",
+              "direction": "column",
+              "width": {
+                "mode": "fixed",
+                "px": 16
+              },
+              "height": {
+                "mode": "fixed",
+                "px": 2
+              },
+              "absolutePosition": {
+                "left": 945,
+                "top": 254
+              }
+            },
+            "style": {
+              "bg": {
+                "hex": "#F59E0B"
+              },
+              "borderRadius": 1
+            },
+            "children": []
+          },
+          {
+            "id": "33cfb1bb-30d9-49b7-9362-86ed7a7cb67f",
+            "name": "conn:-research→aggregator-(vert)",
+            "type": "divider",
+            "sourceShapeIds": [
+              "33cfb1bb-30d9-49b7-9362-86ed7a7cb67f"
+            ],
+            "layout": {
+              "display": "flex",
+              "direction": "column",
+              "width": {
+                "mode": "fixed",
+                "px": 2
+              },
+              "height": {
+                "mode": "fixed",
+                "px": 89
+              },
+              "absolutePosition": {
+                "left": 960,
+                "top": 254
+              }
+            },
+            "style": {
+              "bg": {
+                "hex": "#F59E0B"
+              },
+              "borderRadius": 1
+            },
+            "children": []
+          },
+          {
+            "id": "99c2d11a-8c68-4c83-b0c5-6eb752b6061d",
+            "name": "arrow:-input→planner",
+            "type": "group",
+            "sourceShapeIds": [
+              "99c2d11a-8c68-4c83-b0c5-6eb752b6061d"
+            ],
+            "layout": {
+              "display": "flex",
+              "direction": "column",
+              "width": {
+                "mode": "fixed",
+                "px": 8
+              },
+              "height": {
+                "mode": "fixed",
+                "px": 8
+              },
+              "absolutePosition": {
+                "left": 451,
+                "top": 338
+              }
+            },
+            "style": {
+              "bg": {
+                "hex": "#10B981"
+              }
+            },
+            "children": [],
+            "content": {
+              "placeholder": "arrow:-input→planner"
+            }
+          },
+          {
+            "id": "06104a8a-7e17-4548-af3a-70c0767a19c2",
+            "name": "arrow:-planner→router",
+            "type": "shape",
+            "sourceShapeIds": [
+              "06104a8a-7e17-4548-af3a-70c0767a19c2"
+            ],
+            "layout": {
+              "display": "flex",
+              "direction": "column",
+              "width": {
+                "mode": "fixed",
+                "px": 8
+              },
+              "height": {
+                "mode": "fixed",
+                "px": 8
+              },
+              "absolutePosition": {
+                "left": 621,
+                "top": 338
+              }
+            },
+            "style": {
+              "bg": {
+                "hex": "#10B981"
+              }
+            },
+            "children": []
+          },
+          {
+            "id": "cfea10b3-fcfe-43eb-b69f-49018dcf4014",
+            "name": "arrow:-router→code",
+            "type": "shape",
+            "sourceShapeIds": [
+              "cfea10b3-fcfe-43eb-b69f-49018dcf4014"
+            ],
+            "layout": {
+              "display": "flex",
+              "direction": "column",
+              "width": {
+                "mode": "fixed",
+                "px": 8
+              },
+              "height": {
+                "mode": "fixed",
+                "px": 8
+              },
+              "absolutePosition": {
+                "left": 801,
+                "top": 338
+              }
+            },
+            "style": {
+              "bg": {
+                "hex": "#10B981"
+              }
+            },
+            "children": []
+          },
+          {
+            "id": "9ea238ce-2bf5-40e8-9cd2-e946dde57f13",
+            "name": "arrow:-research→aggregator",
+            "type": "input",
+            "sourceShapeIds": [
+              "9ea238ce-2bf5-40e8-9cd2-e946dde57f13"
+            ],
+            "layout": {
+              "display": "flex",
+              "direction": "column",
+              "width": {
+                "mode": "fixed",
+                "px": 8
+              },
+              "height": {
+                "mode": "fixed",
+                "px": 8
+              },
+              "absolutePosition": {
+                "left": 971,
+                "top": 338
+              }
+            },
+            "style": {
+              "bg": {
+                "hex": "#F59E0B"
+              }
+            },
+            "children": [],
+            "content": {
+              "placeholder": "arrow:-research→aggregator"
+            }
+          },
+          {
+            "id": "2f04673a-b9b2-4354-95f7-042bbabbb83b",
+            "name": "arrow:-code→aggregator",
+            "type": "shape",
+            "sourceShapeIds": [
+              "2f04673a-b9b2-4354-95f7-042bbabbb83b"
+            ],
+            "layout": {
+              "display": "flex",
+              "direction": "column",
+              "width": {
+                "mode": "fixed",
+                "px": 8
+              },
+              "height": {
+                "mode": "fixed",
+                "px": 8
+              },
+              "absolutePosition": {
+                "left": 971,
+                "top": 338
+              }
+            },
+            "style": {
+              "bg": {
+                "hex": "#F59E0B"
+              }
+            },
+            "children": []
+          },
+          {
+            "id": "4c6735c3-3e58-482e-bea4-b2fdc9bb789e",
+            "name": "arrow:-analyzer→aggregator",
+            "type": "shape",
+            "sourceShapeIds": [
+              "4c6735c3-3e58-482e-bea4-b2fdc9bb789e"
+            ],
+            "layout": {
+              "display": "flex",
+              "direction": "column",
+              "width": {
+                "mode": "fixed",
+                "px": 8
+              },
+              "height": {
+                "mode": "fixed",
+                "px": 8
+              },
+              "absolutePosition": {
+                "left": 971,
+                "top": 338
+              }
+            },
+            "style": {
+              "bg": {
+                "hex": "#F59E0B"
+              }
+            },
+            "children": []
+          },
+          {
+            "id": "10ff92a4-c68c-4085-9677-24aeb538b923",
+            "name": "arrow:-aggregator→output",
+            "type": "shape",
+            "sourceShapeIds": [
+              "10ff92a4-c68c-4085-9677-24aeb538b923"
+            ],
+            "layout": {
+              "display": "flex",
+              "direction": "column",
+              "width": {
+                "mode": "fixed",
+                "px": 8
+              },
+              "height": {
+                "mode": "fixed",
+                "px": 8
+              },
+              "absolutePosition": {
+                "left": 1136,
+                "top": 338
+              }
+            },
+            "style": {
+              "bg": {
+                "hex": "#4B5563"
+              }
+            },
+            "children": []
+          },
+          {
+            "id": "521711db-d5cf-4b23-bec5-974ddf8e4529",
+            "name": "conn:-input→planner",
+            "type": "input",
+            "sourceShapeIds": [
+              "521711db-d5cf-4b23-bec5-974ddf8e4529"
+            ],
+            "layout": {
+              "display": "flex",
+              "direction": "column",
+              "width": {
+                "mode": "fixed",
+                "px": 30
+              },
+              "height": {
+                "mode": "fixed",
+                "px": 2
+              },
+              "absolutePosition": {
+                "left": 425,
+                "top": 341
+              }
+            },
+            "style": {
+              "bg": {
+                "hex": "#10B981"
+              },
+              "borderRadius": 1
+            },
+            "children": [],
+            "content": {
+              "placeholder": "conn:-input→planner"
+            }
+          },
+          {
+            "id": "4da3d232-c548-4cba-ab1b-876a7260ef75",
+            "name": "conn:-planner→router",
+            "type": "divider",
+            "sourceShapeIds": [
+              "4da3d232-c548-4cba-ab1b-876a7260ef75"
+            ],
+            "layout": {
+              "display": "flex",
+              "direction": "column",
+              "width": {
+                "mode": "fixed",
+                "px": 30
+              },
+              "height": {
+                "mode": "fixed",
+                "px": 2
+              },
+              "absolutePosition": {
+                "left": 595,
+                "top": 341
+              }
+            },
+            "style": {
+              "bg": {
+                "hex": "#10B981"
+              },
+              "borderRadius": 1
+            },
+            "children": []
+          },
+          {
+            "id": "b660ddd2-6120-4284-bc53-f92196f2f3fc",
+            "name": "conn:-router→code-(center)",
+            "type": "divider",
+            "sourceShapeIds": [
+              "b660ddd2-6120-4284-bc53-f92196f2f3fc"
+            ],
+            "layout": {
+              "display": "flex",
+              "direction": "column",
+              "width": {
+                "mode": "fixed",
+                "px": 40
+              },
+              "height": {
+                "mode": "fixed",
+                "px": 2
+              },
+              "absolutePosition": {
+                "left": 765,
+                "top": 341
+              }
+            },
+            "style": {
+              "bg": {
+                "hex": "#10B981"
+              },
+              "borderRadius": 1
+            },
+            "children": []
+          },
+          {
+            "id": "6d204a36-f7d9-40f1-aef0-8dd727f0081e",
+            "name": "conn:-router→research-(horiz)",
+            "type": "divider",
+            "sourceShapeIds": [
+              "6d204a36-f7d9-40f1-aef0-8dd727f0081e"
+            ],
+            "layout": {
+              "display": "flex",
+              "direction": "column",
+              "width": {
+                "mode": "fixed",
+                "px": 20
+              },
+              "height": {
+                "mode": "fixed",
+                "px": 2
+              },
+              "absolutePosition": {
+                "left": 765,
+                "top": 341
+              }
+            },
+            "style": {
+              "bg": {
+                "hex": "#10B981"
+              },
+              "borderRadius": 1
+            },
+            "children": []
+          },
+          {
+            "id": "f07c2f2f-4e0f-4dc9-bad7-59f2c87a502b",
+            "name": "conn:-router→analyzer-(horiz)",
+            "type": "divider",
+            "sourceShapeIds": [
+              "f07c2f2f-4e0f-4dc9-bad7-59f2c87a502b"
+            ],
+            "layout": {
+              "display": "flex",
+              "direction": "column",
+              "width": {
+                "mode": "fixed",
+                "px": 20
+              },
+              "height": {
+                "mode": "fixed",
+                "px": 2
+              },
+              "absolutePosition": {
+                "left": 765,
+                "top": 341
+              }
+            },
+            "style": {
+              "bg": {
+                "hex": "#10B981"
+              },
+              "borderRadius": 1
+            },
+            "children": []
+          },
+          {
+            "id": "3bffedb4-0baf-4d78-b736-1fb094572b7d",
+            "name": "conn:-code→aggregator",
+            "type": "divider",
+            "sourceShapeIds": [
+              "3bffedb4-0baf-4d78-b736-1fb094572b7d"
+            ],
+            "layout": {
+              "display": "flex",
+              "direction": "column",
+              "width": {
+                "mode": "fixed",
+                "px": 30
+              },
+              "height": {
+                "mode": "fixed",
+                "px": 2
+              },
+              "absolutePosition": {
+                "left": 945,
+                "top": 341
+              }
+            },
+            "style": {
+              "bg": {
+                "hex": "#F59E0B"
+              },
+              "borderRadius": 1
+            },
+            "children": []
+          },
+          {
+            "id": "87e21207-efeb-4b5e-81e2-dd5384b06a06",
+            "name": "conn:-research→aggregator-(horiz2)",
+            "type": "divider",
+            "sourceShapeIds": [
+              "87e21207-efeb-4b5e-81e2-dd5384b06a06"
+            ],
+            "layout": {
+              "display": "flex",
+              "direction": "column",
+              "width": {
+                "mode": "fixed",
+                "px": 15
+              },
+              "height": {
+                "mode": "fixed",
+                "px": 2
+              },
+              "absolutePosition": {
+                "left": 960,
+                "top": 341
+              }
+            },
+            "style": {
+              "bg": {
+                "hex": "#F59E0B"
+              },
+              "borderRadius": 1
+            },
+            "children": []
+          },
+          {
+            "id": "fd56788b-0bb2-48fd-be76-48a708315be8",
+            "name": "conn:-analyzer→aggregator-(horiz2)",
+            "type": "divider",
+            "sourceShapeIds": [
+              "fd56788b-0bb2-48fd-be76-48a708315be8"
+            ],
+            "layout": {
+              "display": "flex",
+              "direction": "column",
+              "width": {
+                "mode": "fixed",
+                "px": 15
+              },
+              "height": {
+                "mode": "fixed",
+                "px": 2
+              },
+              "absolutePosition": {
+                "left": 960,
+                "top": 341
+              }
+            },
+            "style": {
+              "bg": {
+                "hex": "#F59E0B"
+              },
+              "borderRadius": 1
+            },
+            "children": []
+          },
+          {
+            "id": "5127e4f8-23fc-4746-b019-7ce330378b06",
+            "name": "conn:-aggregator→output",
+            "type": "divider",
+            "sourceShapeIds": [
+              "5127e4f8-23fc-4746-b019-7ce330378b06"
+            ],
+            "layout": {
+              "display": "flex",
+              "direction": "column",
+              "width": {
+                "mode": "fixed",
+                "px": 25
+              },
+              "height": {
+                "mode": "fixed",
+                "px": 2
+              },
+              "absolutePosition": {
+                "left": 1115,
+                "top": 341
+              }
+            },
+            "style": {
+              "bg": {
+                "hex": "#4B5563"
+              },
+              "borderRadius": 1
+            },
+            "children": []
+          },
+          {
+            "id": "6c5cbfb6-db0c-4a98-a9ed-9daac606adb5",
+            "name": "conn:-router→analyzer-(vert)",
+            "type": "divider",
+            "sourceShapeIds": [
+              "6c5cbfb6-db0c-4a98-a9ed-9daac606adb5"
+            ],
+            "layout": {
+              "display": "flex",
+              "direction": "column",
+              "width": {
+                "mode": "fixed",
+                "px": 2
+              },
+              "height": {
+                "mode": "fixed",
+                "px": 89
+              },
+              "absolutePosition": {
+                "left": 784,
+                "top": 342
+              }
+            },
+            "style": {
+              "bg": {
+                "hex": "#10B981"
+              },
+              "borderRadius": 1
+            },
+            "children": []
+          },
+          {
+            "id": "0602139b-fff5-4db1-b710-4a9a77d91191",
+            "name": "conn:-analyzer→aggregator-(vert)",
+            "type": "group",
+            "sourceShapeIds": [
+              "0602139b-fff5-4db1-b710-4a9a77d91191"
+            ],
+            "layout": {
+              "display": "flex",
+              "direction": "column",
+              "width": {
+                "mode": "fixed",
+                "px": 2
+              },
+              "height": {
+                "mode": "fixed",
+                "px": 90
+              },
+              "absolutePosition": {
+                "left": 960,
+                "top": 342
+              }
+            },
+            "style": {
+              "bg": {
+                "hex": "#F59E0B"
+              },
+              "borderRadius": 1
+            },
+            "children": []
+          },
+          {
+            "id": "324cfd58-8525-41a0-a159-abaa3e93a3be",
+            "name": "arrow:-router→analyzer",
+            "type": "shape",
+            "sourceShapeIds": [
+              "324cfd58-8525-41a0-a159-abaa3e93a3be"
+            ],
+            "layout": {
+              "display": "flex",
+              "direction": "column",
+              "width": {
+                "mode": "fixed",
+                "px": 8
+              },
+              "height": {
+                "mode": "fixed",
+                "px": 8
+              },
+              "absolutePosition": {
+                "left": 801,
+                "top": 426
+              }
+            },
+            "style": {
+              "bg": {
+                "hex": "#10B981"
+              }
+            },
+            "children": []
+          },
+          {
+            "id": "bf8f2c28-fd48-40cd-aca8-cd56c5e2d3e9",
+            "name": "conn:-router→analyzer-(horiz2)",
+            "type": "divider",
+            "sourceShapeIds": [
+              "bf8f2c28-fd48-40cd-aca8-cd56c5e2d3e9"
+            ],
+            "layout": {
+              "display": "flex",
+              "direction": "column",
+              "width": {
+                "mode": "fixed",
+                "px": 21
+              },
+              "height": {
+                "mode": "fixed",
+                "px": 2
+              },
+              "absolutePosition": {
+                "left": 784,
+                "top": 430
+              }
+            },
+            "style": {
+              "bg": {
+                "hex": "#10B981"
+              },
+              "borderRadius": 1
+            },
+            "children": []
+          },
+          {
+            "id": "0eea3214-3ef5-4439-9124-8771b17fe37c",
+            "name": "conn:-analyzer→aggregator-(horiz)",
+            "type": "divider",
+            "sourceShapeIds": [
+              "0eea3214-3ef5-4439-9124-8771b17fe37c"
+            ],
+            "layout": {
+              "display": "flex",
+              "direction": "column",
+              "width": {
+                "mode": "fixed",
+                "px": 16
+              },
+              "height": {
+                "mode": "fixed",
+                "px": 2
+              },
+              "absolutePosition": {
+                "left": 945,
+                "top": 430
+              }
+            },
+            "style": {
+              "bg": {
+                "hex": "#F59E0B"
+              },
+              "borderRadius": 1
+            },
+            "children": []
+          }
+        ]
+      }
+    ]
+  },
+  "components": []
+}
