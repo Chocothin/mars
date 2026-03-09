@@ -77,7 +77,7 @@ function makeTask(overrides: Partial<Task> = {}): Task {
     status: overrides.status ?? 'ready',
     priority: overrides.priority ?? 'medium',
     order: overrides.order ?? 0,
-    assignedAgentType: overrides.assignedAgentType ?? null,
+    assignedAgentType: overrides.assignedAgentType ?? [],
     assignedAgentId: overrides.assignedAgentId ?? null,
     dependsOnTaskIds: overrides.dependsOnTaskIds ?? [],
     acceptanceCriteria: overrides.acceptanceCriteria ?? [],

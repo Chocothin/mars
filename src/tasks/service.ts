@@ -144,7 +144,7 @@ export class TaskService implements ITaskService {
     if (dependsOnIds.length > 0) {
       this.validateDependencyIds(projectId, null, dependsOnIds, input.parentTaskId ?? null);
     }
-    const assignedAgentType = input.assignedAgentType ?? null;
+    const assignedAgentType = input.assignedAgentType ?? [];
 
     const autoBlock = this.shouldAutoBlock(dependsOnIds);
     const status = autoBlock ? 'blocked' : (input.status ?? 'backlog');
@@ -222,7 +222,7 @@ export class TaskService implements ITaskService {
       }
       updates.assignedAgentId = input.assignedAgentId;
     } else if (input.assignedAgentType !== undefined) {
-      updates.assignedAgentType = input.assignedAgentType;
+      updates.assignedAgentType = input.assignedAgentType ?? undefined;
     }
 
     if (statusChanging) {

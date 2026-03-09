@@ -100,7 +100,7 @@ export class TaskDecomposer implements ITaskDecomposer {
       'Return a JSON array of subtasks. Each subtask must have:',
       '- title: string (action verb: "Implement", "Create", "Build", "Write tests for")',
       '- description: string (WHAT code/files to produce)',
-      '- assignedAgentType: string (one of the agent type names above — this determines which agent executes)',
+      '- assignedAgentType: string[] (array of matching agent type names from above — e.g. ["backend"])',
       '- requiredCapabilities: string[]',
       '- dependsOn: string[] (titles of other subtasks from THIS decomposition ONLY)',
       '- estimatedDurationMin: number',
@@ -151,13 +151,20 @@ export class TaskDecomposer implements ITaskDecomposer {
         if (depId) dependsOnTaskIds.push(depId);
       }
 
-      const assignedAgentType = (subtask as Record<string, unknown>).assignedAgentType as string | undefined;
+      const raw = (subtask as unknown as Record<string, unknown>).assignedAgentType;
+      const assignedAgentType: string[] = Array.isArray(raw)
+        ? raw as string[]
+        : typeof raw === 'string'
+          ? raw.split(',').map(s => s.trim()).filter(Boolean)
+          : subtask.requiredCapabilities.length > 0 && subtask.requiredCapabilities[0]
+            ? [subtask.requiredCapabilities[0]]
+            : [];
 
       const input: CreateTaskInput = {
         title: subtask.title,
         description: subtask.description,
         parentTaskId,
-        assignedAgentType: assignedAgentType ?? subtask.requiredCapabilities[0] ?? null,
+        assignedAgentType,
         assignedAgentId: subtask.assignedAgentId,
         dependsOnTaskIds,
         acceptanceCriteria: subtask.acceptanceCriteria ?? [],

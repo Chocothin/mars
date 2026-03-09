@@ -17,7 +17,10 @@ interface CliMcpConfig {
 
 const configDir = mkdtempSync(join(tmpdir(), 'mars-mcp-'));
 
-export function writeMcpConfig(servers: McpServer[]): string {
+export function writeMcpConfig(
+  servers: McpServer[],
+  extraEntries?: Record<string, CliMcpServerEntry>,
+): string {
   const config: CliMcpConfig = { mcpServers: {} };
 
   for (const server of servers) {
@@ -39,10 +42,16 @@ export function writeMcpConfig(servers: McpServer[]): string {
     }
   }
 
+  if (extraEntries) {
+    Object.assign(config.mcpServers, extraEntries);
+  }
+
   const filePath = join(configDir, `mcp-${Date.now()}.json`);
   writeFileSync(filePath, JSON.stringify(config, null, 2));
   return filePath;
 }
+
+export type { CliMcpServerEntry };
 
 export function buildCodexMcpFlags(mcpConfigPath: string): string[] {
   try {

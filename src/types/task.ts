@@ -11,7 +11,7 @@ export interface Task {
   status: TaskStatus;
   priority: TaskPriority;
   order: number;
-  assignedAgentType: string | null;
+  assignedAgentType: string[];
   assignedAgentId: string | null;
   dependsOnTaskIds: string[];
   acceptanceCriteria: string[];
@@ -34,7 +34,7 @@ export interface CreateTaskInput {
   status?: TaskStatus;
   priority?: TaskPriority;
   parentTaskId?: string;
-  assignedAgentType?: string;
+  assignedAgentType?: string[];
   assignedAgentId?: string;
   dependsOnTaskIds?: string[];
   acceptanceCriteria?: string[];
@@ -48,7 +48,7 @@ export interface UpdateTaskInput {
   status?: TaskStatus;
   priority?: TaskPriority;
   order?: number;
-  assignedAgentType?: string | null;
+  assignedAgentType?: string[] | null;
   assignedAgentId?: string | null;
   acceptanceCriteria?: string[];
   expectedOutputs?: string[];

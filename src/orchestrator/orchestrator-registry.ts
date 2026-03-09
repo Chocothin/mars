@@ -5,7 +5,9 @@ import type { OrchestratorSessionConfig } from './orchestrator-session';
 import { getProjectById } from '../db/project-repo';
 import { getMcpServerById } from '../db/mcp-server-repo';
 import { writeMcpConfig } from '../terminal/provider/mcp-config-writer';
+import type { CliMcpServerEntry } from '../terminal/provider/mcp-config-writer';
 import type { Project } from '../types/project';
+import { join } from 'node:path';
 
 // ─── OrchestratorRegistry: projectId → OrchestratorSession 매핑 ───
 
@@ -90,17 +92,17 @@ export class OrchestratorRegistry {
   }
 
   private resolveMcpConfig(project: Project): string | undefined {
-    if (!project.mcpServerIds || project.mcpServerIds.length === 0) {
-      return undefined;
-    }
-
-    const servers = project.mcpServerIds
+    const servers = (project.mcpServerIds ?? [])
       .map(id => getMcpServerById(id))
       .filter((s): s is NonNullable<typeof s> => s !== null && s.enabled);
 
-    if (servers.length === 0) return undefined;
+    const marsOrchEntry: CliMcpServerEntry = {
+      command: 'bun',
+      args: [join(process.cwd(), 'src/mcp/mars-orchestrator-server.ts')],
+      env: { MARS_PROJECT_ID: project.id, MARS_MCP_MODE: '1' },
+    };
 
-    return writeMcpConfig(servers);
+    return writeMcpConfig(servers, { 'mars-orchestrator': marsOrchEntry });
   }
 
   private buildProjectContext(project: Project): string | undefined {

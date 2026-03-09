@@ -198,6 +198,7 @@ function createSchema(db: Database): void {
   // Quality verification columns for tasks
   ensureTextColumn(db, 'tasks', 'acceptance_criteria', "'[]'");
   ensureTextColumn(db, 'tasks', 'expected_outputs', "'[]'");
+  migrateAssignedAgentTypeToJsonArray(db);
   ensureIntegerColumn(db, 'tasks', 'max_retries', '2');
   ensureIntegerColumn(db, 'tasks', 'retry_count', '0');
   ensureNullableTextColumn(db, 'tasks', 'review_feedback');
@@ -493,5 +494,18 @@ function ensureTerminalSessionsIsolation(db: Database): void {
   } catch (error) {
     db.exec('ROLLBACK');
     throw error;
+  }
+}
+
+function migrateAssignedAgentTypeToJsonArray(db: Database): void {
+  const rows = db.query(
+    `SELECT id, assigned_agent_type FROM tasks WHERE assigned_agent_type IS NOT NULL AND assigned_agent_type NOT LIKE '[%'`,
+  ).all() as Array<{ id: string; assigned_agent_type: string }>;
+  if (rows.length === 0) return;
+
+  const stmt = db.prepare('UPDATE tasks SET assigned_agent_type = $val WHERE id = $id');
+  for (const row of rows) {
+    const types = row.assigned_agent_type.split(',').map(s => s.trim()).filter(Boolean);
+    stmt.run({ $id: row.id, $val: JSON.stringify(types) });
   }
 }

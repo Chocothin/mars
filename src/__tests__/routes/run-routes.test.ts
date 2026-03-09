@@ -75,7 +75,7 @@ function makeTask(id: string, projectId: string): Task {
     status: 'ready',
     priority: 'medium',
     order: 0,
-    assignedAgentType: null,
+    assignedAgentType: [],
     assignedAgentId: null,
     dependsOnTaskIds: [],
     acceptanceCriteria: [],

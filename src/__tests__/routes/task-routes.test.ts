@@ -73,7 +73,7 @@ function makeTask(): Task {
     status: 'ready',
     priority: 'medium',
     order: 0,
-    assignedAgentType: null,
+    assignedAgentType: [],
     assignedAgentId: null,
     dependsOnTaskIds: [],
     acceptanceCriteria: [],
@@ -126,12 +126,12 @@ describe('task routes assignment', () => {
     expect(setResponse).not.toBeNull();
     expect(setResponse!.status).toBe(200);
 
-    const body = await setResponse!.json() as { data: { assignedAgentId: string | null; assignedAgentName: string | null; assignedAgentType: string | null } };
+    const body = await setResponse!.json() as { data: { assignedAgentId: string | null; assignedAgentName: string | null; assignedAgentType: string[] } };
     expect(body.data.assignedAgentName).toBe('Agent agent-1');
 
     const stored = getTaskById('project-1', 'task-1');
     expect(stored?.assignedAgentId).toBe('agent-1');
-    expect(stored?.assignedAgentType).toBeNull();
+    expect(stored?.assignedAgentType).toEqual([]);
 
     const getResponse = await callRoute('GET', '/api/projects/project-1/tasks/task-1/assignment');
     const getBody = await getResponse!.json() as { data: { assignedAgentId: string | null; agent: Agent | null } };
@@ -142,7 +142,7 @@ describe('task routes assignment', () => {
     expect(clearResponse).not.toBeNull();
     expect(clearResponse!.status).toBe(200);
     expect(getTaskById('project-1', 'task-1')?.assignedAgentId).toBeNull();
-    expect(getTaskById('project-1', 'task-1')?.assignedAgentType).toBeNull();
+    expect(getTaskById('project-1', 'task-1')?.assignedAgentType).toEqual([]);
   });
 
   it('rejects assigning an agent that is not part of the project', async () => {
@@ -160,10 +160,10 @@ describe('task routes assignment', () => {
     const response = await callRoute('PATCH', '/api/projects/project-1/tasks/task-1', { assignedAgentId: 'agent-1' });
     expect(response).not.toBeNull();
     expect(response!.status).toBe(200);
-    const body = await response!.json() as { data: { assignedAgentId: string | null; assignedAgentName: string | null; assignedAgentType: string | null } };
+    const body = await response!.json() as { data: { assignedAgentId: string | null; assignedAgentName: string | null; assignedAgentType: string[] } };
     expect(body.data.assignedAgentName).toBe('Agent agent-1');
     expect(getTaskById('project-1', 'task-1')?.assignedAgentId).toBe('agent-1');
-    expect(getTaskById('project-1', 'task-1')?.assignedAgentType).toBeNull();
+    expect(getTaskById('project-1', 'task-1')?.assignedAgentType).toEqual([]);
   });
 
   it('serializes assignedAgentName in task list and detail responses', async () => {
@@ -172,10 +172,10 @@ describe('task routes assignment', () => {
     const detailResponse = await callRoute('GET', '/api/tasks/task-1');
     expect(detailResponse).not.toBeNull();
     expect(detailResponse!.status).toBe(200);
-    const detailBody = await detailResponse!.json() as { data: { assignedAgentId: string | null; assignedAgentName: string | null; assignedAgentType: string | null } };
+    const detailBody = await detailResponse!.json() as { data: { assignedAgentId: string | null; assignedAgentName: string | null; assignedAgentType: string[] } };
     expect(detailBody.data.assignedAgentId).toBe('agent-1');
     expect(detailBody.data.assignedAgentName).toBe('Agent agent-1');
-    expect(detailBody.data.assignedAgentType).toBeNull();
+    expect(detailBody.data.assignedAgentType).toEqual([]);
 
     const listResponse = await callRoute('GET', '/api/tasks?limit=10');
     expect(listResponse).not.toBeNull();

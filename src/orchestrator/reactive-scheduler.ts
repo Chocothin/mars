@@ -97,7 +97,10 @@ export class ReactiveScheduler {
       SELECT * FROM tasks
       WHERE id IN (${placeholders})
         AND status = 'ready'
-        AND assigned_agent_type = ?
+        AND assigned_agent_type IS NOT NULL
+        AND EXISTS (
+          SELECT 1 FROM json_each(assigned_agent_type) WHERE json_each.value = ?
+        )
         AND NOT EXISTS (
           SELECT 1 FROM tasks child WHERE child.parent_task_id = tasks.id
         )

@@ -210,8 +210,8 @@ async function handleCreate(projectId: string, req: Request): Promise<Response> 
   if (input.parentTaskId !== undefined && typeof input.parentTaskId !== 'string') {
     return errorResponse('parentTaskId must be a string', 400);
   }
-  if (input.assignedAgentType !== undefined && typeof input.assignedAgentType !== 'string') {
-    return errorResponse('assignedAgentType must be a string', 400);
+  if (input.assignedAgentType !== undefined && !Array.isArray(input.assignedAgentType)) {
+    return errorResponse('assignedAgentType must be an array of strings', 400);
   }
   if (input.assignedAgentId !== undefined && typeof input.assignedAgentId !== 'string') {
     return errorResponse('assignedAgentId must be a string', 400);
@@ -228,7 +228,7 @@ async function handleCreate(projectId: string, req: Request): Promise<Response> 
     status: input.status as TaskStatus | undefined,
     priority: input.priority as TaskPriority | undefined,
     parentTaskId: input.parentTaskId as string | undefined,
-    assignedAgentType: input.assignedAgentType as string | undefined,
+    assignedAgentType: input.assignedAgentType as string[] | undefined,
     assignedAgentId: input.assignedAgentId as string | undefined,
     dependsOnTaskIds: input.dependsOnTaskIds as string[] | undefined,
     acceptanceCriteria: Array.isArray(input.acceptanceCriteria) ? input.acceptanceCriteria as string[] : undefined,
@@ -325,8 +325,8 @@ async function handleUpdate(projectId: string, taskId: string, req: Request): Pr
   if (input.order !== undefined && (typeof input.order !== 'number' || !Number.isInteger(input.order))) {
     return errorResponse('order must be an integer', 400);
   }
-  if (input.assignedAgentType !== undefined && input.assignedAgentType !== null && typeof input.assignedAgentType !== 'string') {
-    return errorResponse('assignedAgentType must be a string or null', 400);
+  if (input.assignedAgentType !== undefined && input.assignedAgentType !== null && !Array.isArray(input.assignedAgentType)) {
+    return errorResponse('assignedAgentType must be an array of strings or null', 400);
   }
   if (input.assignedAgentId !== undefined && input.assignedAgentId !== null && typeof input.assignedAgentId !== 'string') {
     return errorResponse('assignedAgentId must be a string or null', 400);
@@ -338,7 +338,7 @@ async function handleUpdate(projectId: string, taskId: string, req: Request): Pr
   if (input.status !== undefined) updateInput.status = input.status as TaskStatus;
   if (input.priority !== undefined) updateInput.priority = input.priority as TaskPriority;
   if (input.order !== undefined) updateInput.order = input.order as number;
-  if (input.assignedAgentType !== undefined) updateInput.assignedAgentType = input.assignedAgentType as string | null;
+  if (input.assignedAgentType !== undefined) updateInput.assignedAgentType = input.assignedAgentType as string[] | null;
   if (input.assignedAgentId !== undefined) updateInput.assignedAgentId = input.assignedAgentId as string | null;
   if (Array.isArray(input.acceptanceCriteria)) updateInput.acceptanceCriteria = input.acceptanceCriteria as string[];
   if (Array.isArray(input.expectedOutputs)) updateInput.expectedOutputs = input.expectedOutputs as string[];

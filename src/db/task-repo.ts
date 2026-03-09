@@ -32,7 +32,7 @@ function rowToTask(row: TaskRow): Task {
     status: row.status as Task['status'],
     priority: row.priority as Task['priority'],
     order: row.order,
-    assignedAgentType: row.assigned_agent_type,
+    assignedAgentType: JSON.parse(row.assigned_agent_type || '[]') as string[],
     assignedAgentId: row.assigned_agent_id,
     dependsOnTaskIds: getDependencyIds(row.id),
     acceptanceCriteria: JSON.parse(row.acceptance_criteria || '[]'),
@@ -60,7 +60,7 @@ export function insertTask(task: Task): void {
     $status: task.status,
     $priority: task.priority,
     $order: task.order,
-    $assignedAgentType: task.assignedAgentType,
+    $assignedAgentType: task.assignedAgentType.length > 0 ? JSON.stringify(task.assignedAgentType) : null,
     $assignedAgentId: task.assignedAgentId,
     $acceptanceCriteria: JSON.stringify(task.acceptanceCriteria ?? []),
     $expectedOutputs: JSON.stringify(task.expectedOutputs ?? []),
@@ -113,7 +113,8 @@ export function updateTask(taskId: string, updates: Partial<Task>): boolean {
   }
   if (updates.assignedAgentType !== undefined) {
     setClauses.push('assigned_agent_type = $assignedAgentType');
-    params.$assignedAgentType = updates.assignedAgentType;
+    const types = updates.assignedAgentType;
+    params.$assignedAgentType = types && types.length > 0 ? JSON.stringify(types) : null;
   }
   if (updates.assignedAgentId !== undefined) {
     setClauses.push('assigned_agent_id = $assignedAgentId');
@@ -180,7 +181,7 @@ export function queryTasks(projectId: string, q: TaskQuery): Task[] {
     }
   }
   if (q.assignedAgentType !== undefined) {
-    conditions.push('assigned_agent_type = $assignedAgentType');
+    conditions.push('EXISTS (SELECT 1 FROM json_each(assigned_agent_type) WHERE json_each.value = $assignedAgentType)');
     params.$assignedAgentType = q.assignedAgentType;
   }
   if (q.assignedAgentId !== undefined) {
@@ -238,7 +239,7 @@ export function queryTasksGlobal(q: TaskQuery & { projectId?: string }): Task[] 
     }
   }
   if (q.assignedAgentType !== undefined) {
-    conditions.push('assigned_agent_type = $assignedAgentType');
+    conditions.push('EXISTS (SELECT 1 FROM json_each(assigned_agent_type) WHERE json_each.value = $assignedAgentType)');
     params.$assignedAgentType = q.assignedAgentType;
   }
   if (q.assignedAgentId !== undefined) {
