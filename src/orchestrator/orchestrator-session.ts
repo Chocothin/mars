@@ -19,6 +19,7 @@ export interface OrchestratorSessionConfig {
   projectId: string;
   projectDirectory: string;
   mcpConfigPath?: string;
+  projectContext?: string;
 }
 
 export class OrchestratorSession {
@@ -34,6 +35,7 @@ export class OrchestratorSession {
   private readonly cliExecutor: ICliExecutor;
   private readonly projectDirectory: string;
   private readonly mcpConfigPath: string | null;
+  private readonly projectContext: string | null;
 
   constructor(config: OrchestratorSessionConfig) {
     this.agent = config.agent;
@@ -42,6 +44,7 @@ export class OrchestratorSession {
     this.cliExecutor = config.cliExecutor;
     this.projectDirectory = config.projectDirectory;
     this.mcpConfigPath = config.mcpConfigPath ?? null;
+    this.projectContext = config.projectContext ?? null;
   }
 
   // ─── State ───
@@ -137,11 +140,16 @@ export class OrchestratorSession {
       throw new Error('No default provider configured');
     }
 
+    const systemParts: string[] = [];
+    if (this.agent.systemPrompt) systemParts.push(this.agent.systemPrompt);
+    if (this.projectContext) systemParts.push(this.projectContext);
+
     const options: CliExecuteOptions = {
       prompt,
       model: this.agent.modelId,
       workingDirectory: this.projectDirectory,
       outputFormat: 'text',
+      systemPrompt: systemParts.length > 0 ? systemParts.join('\n\n') : undefined,
     };
 
     if (this.sessionId) {

@@ -3,7 +3,9 @@ import type { IAgentService, Agent } from '../types/agent';
 import { OrchestratorSession } from './orchestrator-session';
 import type { OrchestratorSessionConfig } from './orchestrator-session';
 import { getProjectById } from '../db/project-repo';
+import { getMcpServerById } from '../db/mcp-server-repo';
 import { writeMcpConfig } from '../terminal/provider/mcp-config-writer';
+import type { Project } from '../types/project';
 
 // ─── OrchestratorRegistry: projectId → OrchestratorSession 매핑 ───
 
@@ -34,11 +36,16 @@ export class OrchestratorRegistry {
       throw new Error('No orchestrator agent configured. Create an agent with "orchestrator" in its name.');
     }
 
+    const mcpConfigPath = this.resolveMcpConfig(project);
+    const projectContext = this.buildProjectContext(project);
+
     const config: OrchestratorSessionConfig = {
       agent: orchestratorAgent,
       cliExecutor: this.cliExecutor,
       projectId,
       projectDirectory: project.directoryPath,
+      mcpConfigPath,
+      projectContext,
     };
 
     const session = new OrchestratorSession(config);
@@ -80,5 +87,34 @@ export class OrchestratorRegistry {
   private async findOrchestratorAgent(): Promise<Agent | null> {
     const agents = await this.agentService.list({ enabled: true });
     return agents.find(a => a.name.toLowerCase().includes('orchestrator')) ?? agents[0] ?? null;
+  }
+
+  private resolveMcpConfig(project: Project): string | undefined {
+    if (!project.mcpServerIds || project.mcpServerIds.length === 0) {
+      return undefined;
+    }
+
+    const servers = project.mcpServerIds
+      .map(id => getMcpServerById(id))
+      .filter((s): s is NonNullable<typeof s> => s !== null && s.enabled);
+
+    if (servers.length === 0) return undefined;
+
+    return writeMcpConfig(servers);
+  }
+
+  private buildProjectContext(project: Project): string | undefined {
+    const parts: string[] = [];
+
+    parts.push(`# Project: ${project.name}`);
+    if (project.description) {
+      parts.push(`\n## Description\n${project.description}`);
+    }
+    if (project.instructions) {
+      parts.push(`\n## Instructions\n${project.instructions}`);
+    }
+    parts.push(`\n## Directory\n${project.directoryPath}`);
+
+    return parts.join('\n');
   }
 }
