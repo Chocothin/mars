@@ -25,19 +25,14 @@ import { terminalService } from '../terminal/service';
 import { existsSync, mkdirSync, rmSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { OrchestrationBootstrapService } from '../orchestration/bootstrap-service';
-
 const ORCHESTRATOR_AGENT_ID = 'agent-orchestrator';
 
 export class ProjectService implements IProjectService {
-  private bootstrapService: OrchestrationBootstrapService;
   private terminalService: ITerminalService;
 
   constructor(deps?: {
-    bootstrapService?: OrchestrationBootstrapService;
     terminalService?: ITerminalService;
   }) {
-    this.bootstrapService = deps?.bootstrapService ?? new OrchestrationBootstrapService();
     this.terminalService = deps?.terminalService ?? terminalService;
   }
 
@@ -107,14 +102,6 @@ export class ProjectService implements IProjectService {
 
     insertProject(project);
 
-    try {
-      await this.bootstrapService.bootstrap(project.id);
-    } catch (error) {
-      // Bootstrap is optional — project creation should not fail because of it.
-      // Bootstrap can be retried later via POST /api/projects/{id}/bootstrap.
-      console.warn(`[ProjectService] Bootstrap failed for project ${project.id}, continuing without bootstrap:`, error instanceof Error ? error.message : error);
-    }
-
     return getProjectById(project.id) ?? project;
   }
 
@@ -149,25 +136,6 @@ export class ProjectService implements IProjectService {
 
     const changed = updateProject(id, updates);
     if (!changed) return existing;
-
-    const shouldRefreshBootstrap = this.shouldRefreshBootstrap(existing, updates);
-
-    if (shouldRefreshBootstrap) {
-      try {
-        await this.bootstrapService.bootstrap(id);
-      } catch (error) {
-        updateProject(id, {
-          name: existing.name,
-          description: existing.description,
-          instructions: existing.instructions,
-          providerId: existing.providerId,
-          status: existing.status,
-          agentIds: existing.agentIds,
-          mcpServerIds: existing.mcpServerIds,
-        });
-        throw error;
-      }
-    }
 
     return getProjectById(id);
   }
@@ -212,20 +180,6 @@ export class ProjectService implements IProjectService {
         throw new Error(`MCP server not found: ${mcpServerId}`);
       }
     }
-  }
-
-  private shouldRefreshBootstrap(existing: Project, updates: Partial<Project>): boolean {
-    return (
-      updates.name !== undefined && updates.name !== existing.name
-    ) || (
-      updates.description !== undefined && updates.description !== existing.description
-    ) || (
-      updates.instructions !== undefined && updates.instructions !== existing.instructions
-    ) || (
-      updates.providerId !== undefined && updates.providerId !== existing.providerId
-    ) || (
-      updates.agentIds !== undefined && JSON.stringify(updates.agentIds) !== JSON.stringify(existing.agentIds)
-    );
   }
 
   private async cleanupDeletedSessionRuntimes(sessionIds: string[]): Promise<void> {

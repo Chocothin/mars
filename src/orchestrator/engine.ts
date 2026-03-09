@@ -500,7 +500,7 @@ export class OrchestratorEngine implements IOrchestratorEngine {
 
   // ─── Crash Recovery ───
 
-  recoverZombieRuns(): number {
+  recoverZombieRuns(): string[] {
     const db = getDb();
     const zombieStatuses = ['decomposing', 'scheduling', 'running', 'reviewing'];
     const placeholders = zombieStatuses.map(() => '?').join(',');
@@ -512,11 +512,12 @@ export class OrchestratorEngine implements IOrchestratorEngine {
 
     if (zombieRuns.length === 0) {
       this.clearGracefulMarker();
-      return 0;
+      return [];
     }
 
     const gracefulRunIds = this.readGracefulMarker();
     const isDev = process.env.NODE_ENV !== 'production';
+    const recoveredRunIds: string[] = [];
 
     for (const run of zombieRuns) {
       const shouldReset = gracefulRunIds.has(run.id) || isDev;
@@ -525,6 +526,7 @@ export class OrchestratorEngine implements IOrchestratorEngine {
         db.prepare(
           "UPDATE runs SET status = 'pending', started_at = NULL, execution_plan = NULL, result = NULL WHERE id = $id"
         ).run({ $id: run.id });
+        recoveredRunIds.push(run.id);
       } else {
         db.prepare(
           "UPDATE runs SET status = 'failed', completed_at = $now, result = $result WHERE id = $id"
@@ -547,7 +549,17 @@ export class OrchestratorEngine implements IOrchestratorEngine {
     }
 
     this.clearGracefulMarker();
-    return zombieRuns.length;
+
+    if (recoveredRunIds.length > 0) {
+      console.log(`[CrashRecovery] Recovered ${recoveredRunIds.length} run(s), auto-resuming...`);
+      for (const runId of recoveredRunIds) {
+        this.startRun(runId).catch((err) => {
+          console.error(`[CrashRecovery] Failed to auto-resume run ${runId}:`, err);
+        });
+      }
+    }
+
+    return recoveredRunIds;
   }
 
   private writeGracefulMarker(): void {

@@ -1,5 +1,4 @@
 import { TaskService } from '../tasks/service';
-import { ClaimManager } from '../orchestrator/claim';
 import { getTaskByIdGlobal, queryTasksGlobal } from '../db/task-repo';
 import { getAgentById } from '../db/agent-repo';
 import type {
@@ -13,7 +12,6 @@ import { KANBAN_COLUMNS } from '../types/project';
 import type { ApiResponse, PaginatedResponse } from '../types/common';
 
 const service = new TaskService();
-const claimManager = new ClaimManager();
 type TaskWithAssignedAgentName = { assignedAgentId: string | null; assignedAgentName: string | null };
 
 function serializeTask<T extends { assignedAgentId: string | null }>(task: T): T & TaskWithAssignedAgentName {
@@ -68,15 +66,6 @@ function matchTaskRoute(pathname: string): TaskRouteMatch | null {
 }
 
 export async function handleTaskRoutes(req: Request, url: URL): Promise<Response | null> {
-  if (url.pathname === '/api/tasks/claim' && req.method === 'POST') {
-    return await handleClaim(req);
-  }
-
-  const unclaimMatch = url.pathname.match(/^\/api\/tasks\/([^/]+)\/unclaim$/);
-  if (unclaimMatch && req.method === 'POST') {
-    return await handleUnclaim(unclaimMatch[1]!, req);
-  }
-
   if (url.pathname === '/api/tasks' && req.method === 'GET') {
     return await handleGlobalList(url);
   }
@@ -462,56 +451,4 @@ async function handleClearAssignment(projectId: string, taskId: string): Promise
   return Response.json({ success: true, data: serializeTask(task) } satisfies ApiResponse<typeof task & TaskWithAssignedAgentName>);
 }
 
-async function handleClaim(req: Request): Promise<Response> {
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return errorResponse('Invalid JSON body', 400);
-  }
 
-  const input = body as Record<string, unknown>;
-
-  if (!input.agentId || typeof input.agentId !== 'string') {
-    return errorResponse('agentId is required and must be a string', 400);
-  }
-  if (!input.runId || typeof input.runId !== 'string') {
-    return errorResponse('runId is required and must be a string', 400);
-  }
-
-  const result = claimManager.claimNextReady(input.agentId, input.runId);
-
-  if (result === null) {
-    return Response.json(
-      { success: true, data: { taskId: null } } satisfies ApiResponse<{ taskId: null }>,
-    );
-  }
-
-  return Response.json(
-    { success: true, data: result } satisfies ApiResponse<typeof result>,
-  );
-}
-
-const VALID_UNCLAIM_REASONS = ['completed', 'failed', 'timeout'] as const;
-type UnclaimReason = typeof VALID_UNCLAIM_REASONS[number];
-
-async function handleUnclaim(taskId: string, req: Request): Promise<Response> {
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return errorResponse('Invalid JSON body', 400);
-  }
-
-  const input = body as Record<string, unknown>;
-
-  if (!input.reason || !(VALID_UNCLAIM_REASONS as readonly string[]).includes(input.reason as string)) {
-    return errorResponse(`reason is required and must be one of: ${VALID_UNCLAIM_REASONS.join(', ')}`, 400);
-  }
-
-  claimManager.releaseClaim(taskId, input.reason as UnclaimReason);
-
-  return Response.json(
-    { success: true, data: { success: true } } satisfies ApiResponse<{ success: boolean }>,
-  );
-}

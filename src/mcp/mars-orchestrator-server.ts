@@ -13,9 +13,7 @@ import { ProjectService } from '../projects/service';
 import { TaskService } from '../tasks/service';
 import { AgentService } from '../agents/service';
 import { getEngine, getInteractionGate, getInteractionStore } from '../orchestrator/factory';
-import { ClaimManager } from '../orchestrator/claim';
 import { MessageService } from '../messaging/service';
-import { HeartbeatManager } from '../orchestrator/heartbeat';
 import type { ProjectStatus, TaskStatus } from '../types/project';
 import type { TaskPriority, UpdateTaskInput } from '../types/task';
 import type { AgentQuery, ReasoningLevel } from '../types/agent';
@@ -37,9 +35,7 @@ const agentService = new AgentService();
 const engine = getEngine();
 const interactionStore = getInteractionStore();
 const interactionGate = getInteractionGate();
-const claimManager = new ClaimManager();
 const messageService = new MessageService();
-const heartbeatManager = new HeartbeatManager();
 
 const PROJECT_STATUSES = ['active', 'archived'] as const satisfies readonly ProjectStatus[];
 const TASK_PRIORITIES = ['low', 'medium', 'high', 'urgent'] as const satisfies readonly TaskPriority[];
@@ -611,30 +607,6 @@ server.registerTool('interaction_respond', {
 });
 
 
-server.registerTool('task_claim', {
-  description: 'Claim the next ready task for an agent. Returns the claimed task ID or null if none available.',
-  inputSchema: {
-    agentId: z.string(),
-    runId: z.string(),
-  },
-  annotations: { readOnlyHint: false, destructiveHint: false },
-}, async ({ agentId, runId }) => {
-  const result = claimManager.claimNextReady(agentId, runId);
-  return jsonResult({ result });
-});
-
-server.registerTool('task_unclaim', {
-  description: 'Release a claimed task back to ready state.',
-  inputSchema: {
-    taskId: z.string(),
-    reason: z.enum(['completed', 'failed', 'timeout']),
-  },
-  annotations: { readOnlyHint: false, destructiveHint: false },
-}, async ({ taskId, reason }) => {
-  claimManager.releaseClaim(taskId, reason);
-  return jsonResult({ released: true, taskId });
-});
-
 server.registerTool('message_send', {
   description: 'Send a direct message to another agent.',
   inputSchema: {
@@ -672,20 +644,6 @@ server.registerTool('message_mark_read', {
 }, async ({ messageId, agentId }) => {
   const marked = messageService.markRead(messageId, agentId);
   return jsonResult({ marked });
-});
-
-server.registerTool('heartbeat_ping', {
-  description: 'Send a heartbeat ping to indicate agent is alive.',
-  inputSchema: {
-    agentId: z.string(),
-    runId: z.string(),
-    status: z.enum(['idle', 'working', 'offline']).optional(),
-    currentTaskId: z.string().nullable().optional(),
-  },
-  annotations: { readOnlyHint: false, destructiveHint: false },
-}, async ({ agentId, runId, status, currentTaskId }) => {
-  heartbeatManager.ping(agentId, runId, status, currentTaskId);
-  return jsonResult({ status: 'ok' });
 });
 
 async function main(): Promise<void> {

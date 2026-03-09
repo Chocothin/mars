@@ -3,29 +3,6 @@ import type { AutonomyConfig, AutonomyRule, QuestionType } from './types';
 // ─── 질문 유형별 기본 규칙 ───
 
 const DEFAULT_RULES: Record<QuestionType, AutonomyRule> = {
-  // Orchestrator-level
-  decomposition_approval: {
-    level: 3,                    // Approval — 분해 결과는 반드시 인간 확인
-    timeoutMs: 10 * 60 * 1000,  // 10분
-    fallbackAction: 'fail',
-  },
-  assignment_approval: {
-    level: 2,                    // Inform — 자동 배정 + 알림 (일반적으로 안전)
-    timeoutMs: null,
-    fallbackAction: 'auto_approve',
-  },
-  plan_approval: {
-    level: 3,                    // Approval — 실행 계획은 반드시 인간 확인
-    timeoutMs: 15 * 60 * 1000,  // 15분
-    fallbackAction: 'fail',
-  },
-  conflict_resolution: {
-    level: 3,                    // Approval — 충돌은 인간이 판단
-    timeoutMs: 10 * 60 * 1000,  // 10분
-    fallbackAction: 'fail',
-  },
-
-  // Agent-level
   clarification: {
     level: 2,                    // Inform — 에이전트가 자체 판단, 알림
     timeoutMs: null,

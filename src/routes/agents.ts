@@ -1,6 +1,5 @@
 import { AgentService } from '../agents/service';
 import { ProviderService } from '../providers/service';
-import { HeartbeatManager } from '../orchestrator/heartbeat';
 import { terminalService } from '../terminal/service';
 import { providerRegistry } from '../terminal/provider/registry';
 import type {
@@ -11,12 +10,10 @@ import type {
   ReasoningLevel,
 } from '../types/agent';
 import { REASONING_LEVELS } from '../types/agent';
-import type { HeartbeatStatus } from '../orchestrator/heartbeat';
 import type { ApiResponse, PaginatedResponse } from '../types/common';
 
 const service = new AgentService();
 const providerService = new ProviderService();
-const heartbeatManager = new HeartbeatManager();
 
 type AgentResponse = Agent & { modelName?: string };
 
@@ -76,11 +73,6 @@ export async function handleAgentRoutes(req: Request, url: URL): Promise<Respons
 
     if (path === '/api/agents' && method === 'GET') {
       return await handleList(url);
-    }
-
-    const heartbeatMatch = path.match(/^\/api\/agents\/([^/]+)\/heartbeat$/);
-    if (heartbeatMatch && method === 'POST') {
-      return await handleHeartbeat(heartbeatMatch[1]!, req);
     }
 
     const id = extractIdFromPath(path);
@@ -336,38 +328,4 @@ async function handleDelete(id: string): Promise<Response> {
   );
 }
 
-const VALID_HEARTBEAT_STATUSES: HeartbeatStatus[] = ['idle', 'working', 'offline'];
 
-async function handleHeartbeat(agentId: string, req: Request): Promise<Response> {
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return errorResponse('Invalid JSON body', 400);
-  }
-
-  const input = body as Record<string, unknown>;
-
-  if (!input.runId || typeof input.runId !== 'string') {
-    return errorResponse('runId is required and must be a string', 400);
-  }
-  if (input.status !== undefined && (
-    typeof input.status !== 'string' || !VALID_HEARTBEAT_STATUSES.includes(input.status as HeartbeatStatus)
-  )) {
-    return errorResponse(`status must be one of: ${VALID_HEARTBEAT_STATUSES.join(', ')}`, 400);
-  }
-  if (input.currentTaskId !== undefined && input.currentTaskId !== null && typeof input.currentTaskId !== 'string') {
-    return errorResponse('currentTaskId must be a string or null', 400);
-  }
-
-  heartbeatManager.ping(
-    agentId,
-    input.runId,
-    input.status as HeartbeatStatus | undefined,
-    input.currentTaskId as string | null | undefined,
-  );
-
-  return Response.json(
-    { success: true, data: { status: 'ok' } } satisfies ApiResponse<{ status: string }>,
-  );
-}

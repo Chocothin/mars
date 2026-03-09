@@ -67,7 +67,7 @@ export interface TerminalSessionActivity {
   sessionId: string;
   runId: string | null;
   runStatus: import('../orchestrator/types').RunStatus | null;
-  heartbeatStatus: import('../orchestrator/heartbeat').HeartbeatStatus | null;
+  heartbeatStatus: 'idle' | 'working' | 'offline' | null;
   heartbeatLastSeenAt: number | null;
   currentTaskId: string | null;
   currentTaskTitle: string | null;

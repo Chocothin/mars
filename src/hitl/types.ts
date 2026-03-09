@@ -7,13 +7,6 @@ export type InteractionStatus =
   | 'cancelled';       // Run 취소로 함께 취소됨
 
 export type QuestionType =
-  // Orchestrator-level: 전체 실행 흐름에 대한 결정
-  | 'decomposition_approval'   // 서브태스크 분해 결과 승인
-  | 'assignment_approval'      // 에이전트 배정 결과 승인
-  | 'plan_approval'            // 실행 계획 전체 승인
-  | 'conflict_resolution'      // 에이전트 간 충돌 해결
-
-  // Agent-level: 개별 에이전트가 실행 중 발생시키는 질문
   | 'clarification'            // 요구사항 명확화 필요
   | 'destructive_action'       // 파괴적 작업 확인 (파일 삭제, DB 변경 등)
   | 'ambiguity_resolution'     // 모호한 지시 해석 확인

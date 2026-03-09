@@ -8,14 +8,9 @@ import type {
   ProjectStatus,
 } from '../types/project';
 import type { ApiResponse, PaginatedResponse } from '../types/common';
-import type { BootstrapMaterializationResult } from '../orchestration/types';
-import { BootstrapStateError, OrchestrationBootstrapService } from '../orchestration/bootstrap-service';
-import { BootstrapMaterializationService } from '../orchestration/bootstrap-materialization-service';
 import { terminalService } from '../terminal/service';
 
 const service = new ProjectService();
-const bootstrapService = new OrchestrationBootstrapService();
-const bootstrapMaterializationService = new BootstrapMaterializationService({ bootstrapService });
 
 const VALID_STATUSES: ProjectStatus[] = ['active', 'archived'];
 const VALID_SORT_BY = ['name', 'createdAt', 'updatedAt'] as const;
@@ -112,9 +107,6 @@ export async function handleProjectRoutes(req: Request, url: URL): Promise<Respo
       if (!action && method === 'GET') return await handleGetById(id);
       if (!action && method === 'PATCH') return await handleUpdate(id, req);
       if (!action && method === 'DELETE') return await handleDelete(id);
-      if (action === 'bootstrap' && method === 'GET') return await handleGetBootstrap(id);
-      if (action === 'bootstrap' && subAction === 'rebuild' && method === 'POST') return await handleRebuildBootstrap(id);
-      if (action === 'bootstrap' && subAction === 'materialize' && method === 'POST') return await handleMaterializeBootstrap(id);
       if (action === 'dag' && method === 'GET') return await handleDagSnapshot(id, url);
     }
 
@@ -359,68 +351,6 @@ async function handleGetById(id: string): Promise<Response> {
   }
 
   return Response.json({ success: true, data: project } satisfies ApiResponse<typeof project>);
-}
-
-async function handleGetBootstrap(id: string): Promise<Response> {
-  try {
-    const bootstrap = await bootstrapService.getBootstrap(id);
-
-    if (!bootstrap) {
-      return errorResponse('Project bootstrap not found. Re-bootstrap is required.', 404);
-    }
-
-    return Response.json({ success: true, data: bootstrap } satisfies ApiResponse<typeof bootstrap>);
-  } catch (error) {
-    if (error instanceof BootstrapStateError) {
-      return errorResponse(error.message, error.statusCode);
-    }
-    throw error;
-  }
-}
-
-async function handleRebuildBootstrap(id: string): Promise<Response> {
-  const project = await service.getById(id);
-  if (!project) {
-    return errorResponse('Project not found', 404);
-  }
-
-  const bootstrap = await bootstrapService.bootstrap(project.id);
-  return Response.json(
-    { success: true, data: bootstrap } satisfies ApiResponse<typeof bootstrap>,
-    { status: 201 },
-  );
-}
-
-async function handleMaterializeBootstrap(id: string): Promise<Response> {
-  try {
-    const result = await bootstrapMaterializationService.materialize(id);
-    return Response.json(
-      { success: true, data: result } satisfies ApiResponse<BootstrapMaterializationResult>,
-      { status: 201 },
-    );
-  } catch (error) {
-    if (error instanceof BootstrapStateError) {
-      const bootstrap = await bootstrapService.getBootstrap(id).catch(() => null);
-      const materialization = bootstrap?.manifest.materialization;
-      const currentRun = materialization ? getRunById(materialization.runId) : null;
-      const data: BootstrapMaterializationResult | undefined = error.statusCode === 409 && materialization
-        ? {
-          createdTaskIds: materialization.createdTaskIds,
-          dependencyCount: materialization.dependencyCount,
-          alreadyMaterialized: true,
-          runId: materialization.runId,
-          runStatus: currentRun?.status ?? materialization.runStatus,
-          noRunStarted: true,
-        }
-        : undefined;
-
-      return Response.json(
-        { success: false, error: error.message, data },
-        { status: error.statusCode },
-      );
-    }
-    throw error;
-  }
 }
 
 async function handleUpdate(id: string, req: Request): Promise<Response> {

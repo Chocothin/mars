@@ -1,9 +1,9 @@
 import type { SimpleApprovalConfig } from './types';
 
 export const DEFAULT_APPROVAL_CONFIG: SimpleApprovalConfig = {
-  approvalRequired: true,
+  approvalRequired: false,
   timeoutMs: 5 * 60 * 1000,
-  fallbackAction: 'fail',
+  fallbackAction: 'auto_approve',
 };
 
 export function getApprovalOffConfig(): SimpleApprovalConfig {

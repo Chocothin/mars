@@ -10,7 +10,8 @@ import type { ApiResponse, PaginatedResponse } from '../types/common';
 import type { TerminalSession } from '../types/terminal';
 import type { TerminalSessionActivity } from '../types/terminal';
 import type { TaskExecutionStatus } from '../orchestrator/types';
-import type { HeartbeatStatus } from '../orchestrator/heartbeat';
+
+type HeartbeatStatus = 'idle' | 'working' | 'offline';
 
 const skillResolver = new SkillResolver(new SkillService());
 
