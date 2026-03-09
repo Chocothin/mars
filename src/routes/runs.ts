@@ -1,11 +1,8 @@
 import { getEngine } from '../orchestrator/factory';
-import { ClaimManager } from '../orchestrator/claim';
 import { getDb } from '../db/index';
+import * as taskRepo from '../db/task-repo';
 import type { RunConfig, RunStatus } from '../orchestrator/types';
-import type { HeartbeatStatus } from '../orchestrator/heartbeat';
 import type { ApiResponse } from '../types/common';
-
-const claimManager = new ClaimManager();
 
 const VALID_RUN_STATUSES: RunStatus[] = [
   'pending',
@@ -222,7 +219,11 @@ async function handleCancel(runId: string): Promise<Response> {
 }
 
 async function handleReadyTasks(runId: string): Promise<Response> {
-  const tasks = claimManager.getReadyTasks(runId);
+  const db = getDb();
+  const run = db.prepare('SELECT project_id FROM runs WHERE id = $runId').get({ $runId: runId }) as { project_id: string } | null;
+  if (!run) return errorResponse('Run not found', 404);
+
+  const tasks = taskRepo.queryTasks(run.project_id, { status: 'ready' });
   return Response.json(
     { success: true, data: tasks } satisfies ApiResponse,
   );
@@ -248,7 +249,7 @@ async function handleAgentStatus(runId: string): Promise<Response> {
   const data = rows.map((row) => ({
     agentId: row.agent_id,
     runId: row.run_id,
-    status: row.status as HeartbeatStatus,
+    status: row.status as 'idle' | 'working' | 'spawning' | 'dead',
     currentTaskId: row.current_task_id,
     lastSeen: row.last_seen,
     startedAt: row.started_at,
