@@ -99,6 +99,10 @@ export class OrchestratorEngine implements IOrchestratorEngine {
     this.decomposer = deps.decomposer;
   }
 
+  // ─── Accessors ───
+
+  getAgentPool(): AgentPool { return this.pool; }
+
   // ─── Public API ───
 
   async createRun(projectId: string, taskIds: string[], config?: Partial<RunConfig>): Promise<Run> {

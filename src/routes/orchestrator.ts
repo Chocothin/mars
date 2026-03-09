@@ -1,6 +1,7 @@
-import { getDecomposer, getOrchestratorRegistry } from '../orchestrator/factory';
+import { getAgentPool, getDecomposer, getOrchestratorRegistry } from '../orchestrator/factory';
 import type { ProposedSubtask } from '../events/types';
 import type { ApiResponse } from '../types/common';
+import type { AgentPoolEntry } from '../orchestrator/agent-pool';
 
 function errorResponse(message: string, status: number): Response {
   return Response.json(
@@ -47,6 +48,20 @@ export async function handleOrchestratorRoutes(req: Request, url: URL): Promise<
 
   if (path === '/api/orchestrator/sessions' && method === 'GET') {
     return handleListSessions();
+  }
+
+  // ─── AgentPool Status ───
+
+  if (path.match(/^\/api\/projects\/[^/]+\/agents\/status$/) && method === 'GET') {
+    const projectId = path.split('/')[3]!;
+    return handleAgentPoolStatus(projectId);
+  }
+
+  // ─── Chat SSE Stream ───
+
+  if (path.match(/^\/api\/projects\/[^/]+\/chat\/stream$/) && method === 'GET') {
+    const projectId = path.split('/')[3]!;
+    return handleChatStream(projectId, req);
   }
 
   return null;
@@ -209,6 +224,87 @@ function handleChatStatus(projectId: string): Response {
     const message = err instanceof Error ? err.message : 'Internal server error';
     return errorResponse(message, 500);
   }
+}
+
+// ─── AgentPool Status ───
+
+function handleAgentPoolStatus(projectId: string): Response {
+  try {
+    const pool = getAgentPool();
+    const all = pool.getAll();
+
+    const entries = all
+      .filter((e: AgentPoolEntry) => e.runId !== null)
+      .map((e: AgentPoolEntry) => ({
+        agentId: e.agentId,
+        agentName: e.agentName,
+        status: e.status === 'working' ? 'busy' : e.status === 'idle' ? 'idle' : 'offline',
+        currentTaskId: e.currentTaskId,
+        lastActiveAt: new Date(e.lastActivityAt).toISOString(),
+      }));
+
+    return Response.json({
+      success: true,
+      data: entries,
+    } satisfies ApiResponse);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return errorResponse(message, 500);
+  }
+}
+
+// ─── Chat SSE Stream ───
+
+function handleChatStream(projectId: string, req: Request): Response {
+  const registry = getOrchestratorRegistry();
+
+  const stream = new ReadableStream({
+    async start(controller) {
+      const encoder = new TextEncoder();
+
+      const send = (event: string, data: unknown) => {
+        controller.enqueue(encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`));
+      };
+
+      try {
+        const session = await registry.getOrCreate(projectId);
+
+        send('status', { state: session.getState(), sessionId: session.getSessionId() });
+
+        const url = new URL(req.url);
+        const message = url.searchParams.get('message');
+
+        if (!message || message.trim().length === 0) {
+          send('history', { messages: session.getHistory() });
+          send('done', { reason: 'no_message' });
+          controller.close();
+          return;
+        }
+
+        send('ack', { message });
+
+        const response = await session.send(message, (chunk: string) => {
+          send('chunk', { text: chunk });
+        });
+
+        send('response', { content: response, timestamp: Date.now() });
+        send('done', { reason: 'complete' });
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : 'Internal server error';
+        send('error', { message: errorMsg });
+      } finally {
+        controller.close();
+      }
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+    },
+  });
 }
 
 function handleListSessions(): Response {

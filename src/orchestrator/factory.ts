@@ -107,3 +107,8 @@ export function getOrchestratorRegistry(): OrchestratorRegistry {
   ensureInitialized();
   return orchestratorRegistryInstance!;
 }
+
+export function getAgentPool(): import('./agent-pool').AgentPool {
+  ensureInitialized();
+  return engineInstance!.getAgentPool();
+}
