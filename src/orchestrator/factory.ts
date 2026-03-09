@@ -18,6 +18,7 @@ import { MessageService } from '../messaging/service';
 import { SummarizerService, SummaryListener } from '../summarizer';
 import { OrchestratorEngine } from './engine';
 import { ResultReviewer } from './reviewer';
+import { OrchestratorRegistry } from './orchestrator-registry';
 import { getDefaultProvider } from '../db/provider-repo';
 
 // ─── Shared orchestrator instances (lazy singleton) ─────────────────────────
@@ -30,6 +31,7 @@ let messageServiceInstance: MessageService | null = null;
 let interactionStoreInstance: InteractionStore | null = null;
 let interactionGateInstance: InteractionGate | null = null;
 let summaryListenerInstance: SummaryListener | null = null;
+let orchestratorRegistryInstance: OrchestratorRegistry | null = null;
 
 function ensureInitialized(): void {
   if (engineInstance) return;
@@ -76,6 +78,11 @@ function ensureInitialized(): void {
     reviewer,
   });
 
+  orchestratorRegistryInstance = new OrchestratorRegistry({
+    cliExecutor,
+    agentService,
+  });
+
   setInterval(() => sessionManager.cleanupStale(60000), 60000);
 
   if (!process.env.MARS_MCP_MODE) {
@@ -116,4 +123,9 @@ export function getInteractionStore(): InteractionStore {
 export function getInteractionGate(): InteractionGate {
   ensureInitialized();
   return interactionGateInstance!;
+}
+
+export function getOrchestratorRegistry(): OrchestratorRegistry {
+  ensureInitialized();
+  return orchestratorRegistryInstance!;
 }

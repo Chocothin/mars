@@ -193,7 +193,8 @@ const server: Bun.Server<WsData> = Bun.serve({
 console.log(`🔴 MARS server running on http://localhost:${server.port}`);
 
 const shutdownHandler = () => {
-  const { getEngine } = require('./orchestrator/factory') as typeof import('./orchestrator/factory');
+  const { getEngine, getOrchestratorRegistry } = require('./orchestrator/factory') as typeof import('./orchestrator/factory');
+  try { getOrchestratorRegistry().terminateAll(); } catch { /* ignore if not initialized */ }
   try { getEngine().dispose(); } catch { /* ignore if not initialized */ }
   process.exit(0);
 };
