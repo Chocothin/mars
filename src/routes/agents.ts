@@ -2,6 +2,7 @@ import { AgentService } from '../agents/service';
 import { ProviderService } from '../providers/service';
 import { terminalService } from '../terminal/service';
 import { providerRegistry } from '../terminal/provider/registry';
+import { getAgentPool } from '../orchestrator/factory';
 import type {
   Agent,
   CreateAgentInput,
@@ -75,6 +76,10 @@ export async function handleAgentRoutes(req: Request, url: URL): Promise<Respons
       return await handleList(url);
     }
 
+    if (path === '/api/agents/pool-status' && method === 'GET') {
+      return handlePoolStatus();
+    }
+
     const id = extractIdFromPath(path);
     if (id) {
       if (method === 'GET') return await handleGetById(id);
@@ -90,6 +95,27 @@ export async function handleAgentRoutes(req: Request, url: URL): Promise<Respons
       : message.includes('Invalid') ? 400
       : 500;
     return errorResponse(message, status);
+  }
+}
+
+function handlePoolStatus(): Response {
+  try {
+    const pool = getAgentPool();
+    const entries = pool.getAll().map((e) => ({
+      agentId: e.agentId,
+      agentName: e.agentName,
+      status: e.status === 'working' ? 'busy' as const : e.status === 'idle' ? 'idle' as const : 'offline' as const,
+      currentTaskId: e.currentTaskId,
+      lastActiveAt: new Date(e.lastActivityAt).toISOString(),
+    }));
+
+    return Response.json({
+      success: true,
+      data: entries,
+    } satisfies ApiResponse);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return errorResponse(message, 500);
   }
 }
 
