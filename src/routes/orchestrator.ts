@@ -277,7 +277,6 @@ function handleChatStream(projectId: string, req: Request): Response {
         if (!message || message.trim().length === 0) {
           send('history', { messages: session.getHistory() });
           send('done', { reason: 'no_message' });
-          controller.close();
           return;
         }
 
