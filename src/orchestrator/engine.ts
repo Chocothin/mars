@@ -7,6 +7,7 @@ import type { Task, ITaskService } from '../types/task';
 import type { ICliExecutor } from '../types/provider';
 import type { IMessageService } from '../messaging/service';
 import type { IResultReviewer } from './reviewer';
+import type { ITaskDecomposer } from './decomposer';
 import type { MatchedPair } from './task-matcher';
 import { ContextBuilder } from '../execution/context-builder';
 import { InteractionGate } from '../hitl/interaction-gate';
@@ -69,6 +70,7 @@ export class OrchestratorEngine implements IOrchestratorEngine {
   private cliExecutor: ICliExecutor;
   private messageService: IMessageService;
   private reviewer: IResultReviewer;
+  private decomposer: ITaskDecomposer;
   private activeRuns = new Map<string, AbortController>();
   private processes = new Map<string, AgentProcess>();
 
@@ -82,6 +84,7 @@ export class OrchestratorEngine implements IOrchestratorEngine {
     cliExecutor: ICliExecutor;
     messageService: IMessageService;
     reviewer: IResultReviewer;
+    decomposer: ITaskDecomposer;
   }) {
     this.pool = deps.pool;
     this.scheduler = deps.scheduler;
@@ -93,6 +96,7 @@ export class OrchestratorEngine implements IOrchestratorEngine {
     this.cliExecutor = deps.cliExecutor;
     this.messageService = deps.messageService;
     this.reviewer = deps.reviewer;
+    this.decomposer = deps.decomposer;
   }
 
   // ─── Public API ───
@@ -261,6 +265,8 @@ export class OrchestratorEngine implements IOrchestratorEngine {
   // ─── Core Loop ───
 
   private async coreLoop(run: Run, signal: AbortSignal): Promise<void> {
+    const decomposing = new Set<string>();
+
     while (!signal.aborted) {
       const scopeTaskIds = this.scheduler.collectAllTaskIds(run.rootTaskIds);
 
@@ -269,6 +275,25 @@ export class OrchestratorEngine implements IOrchestratorEngine {
 
       if (this.scheduler.isAllDone(scopeTaskIds)) break;
 
+      // Decompose undecomposed parent tasks (fire-and-forget per task)
+      const undecomposed = this.scheduler.findUndecomposedParents(scopeTaskIds);
+      for (const parentTask of undecomposed) {
+        if (decomposing.has(parentTask.id)) continue;
+        decomposing.add(parentTask.id);
+
+        const project = getProjectById(run.projectId);
+        const projectContext = project?.directoryPath ?? '';
+
+        this.decomposer.decompose(parentTask.id, projectContext)
+          .catch((err) => {
+            console.error(`[Run ${run.id}] Decomposition failed for task ${parentTask.id}:`, err);
+          })
+          .finally(() => {
+            decomposing.delete(parentTask.id);
+          });
+      }
+
+      // Match ready leaf tasks to idle agents
       const pairs = this.matcher.match(scopeTaskIds);
 
       for (const pair of pairs) {

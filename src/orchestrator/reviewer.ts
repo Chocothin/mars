@@ -1,6 +1,5 @@
-import type { TaskExecution, TaskExecutionOutput } from './types';
+import type { TaskExecution } from './types';
 import type { Task } from '../types/task';
-import type { InteractionGate } from '../hitl/interaction-gate';
 import type { ICliExecutor, CliExecuteOptions } from '../types/provider';
 import { eventBus } from '../events/bus';
 
@@ -18,22 +17,16 @@ export interface ReviewContext {
 export interface IResultReviewer {
   review(execution: TaskExecution): Promise<ReviewResult>;
   reviewWithCriteria(execution: TaskExecution, task: Task, context?: ReviewContext): Promise<ReviewResult>;
-  requestHumanReview(execution: TaskExecution): Promise<ReviewResult>;
-  disposeSession(runId: string): void;
 }
 
 export class ResultReviewer implements IResultReviewer {
-  private interactionGate: InteractionGate;
   private cliExecutor: ICliExecutor | null;
   private reviewerProviderId: string | null;
-  private runSessions = new Map<string, string>();
 
   constructor(deps: {
-    interactionGate: InteractionGate;
     cliExecutor?: ICliExecutor;
     reviewerProviderId?: string;
   }) {
-    this.interactionGate = deps.interactionGate;
     this.cliExecutor = deps.cliExecutor ?? null;
     this.reviewerProviderId = deps.reviewerProviderId ?? null;
   }
@@ -139,11 +132,8 @@ export class ResultReviewer implements IResultReviewer {
       '}',
     ].filter(Boolean).join('\n');
 
-    const existingSessionId = this.runSessions.get(execution.runId);
     const options: CliExecuteOptions = {
       prompt: reviewPrompt,
-      resumeSessionId: existingSessionId,
-      continueSession: !!existingSessionId,
       outputFormat: 'text',
       workingDirectory: projectDir,
       additionalArgs: filesDirs.length > 1
@@ -153,11 +143,6 @@ export class ResultReviewer implements IResultReviewer {
 
     try {
       const cliResult = await this.cliExecutor.execute(this.reviewerProviderId, options);
-
-      if (cliResult.sessionId) {
-        this.runSessions.set(execution.runId, cliResult.sessionId);
-      }
-
       const parsed = this.parseReviewResponse(cliResult.output);
 
       if (parsed.passed) {
@@ -170,48 +155,6 @@ export class ResultReviewer implements IResultReviewer {
     } catch {
       return this.review(execution);
     }
-  }
-
-  async requestHumanReview(execution: TaskExecution): Promise<ReviewResult> {
-    const response = await this.interactionGate.request({
-      type: 'task_review',
-      runId: execution.runId,
-      taskId: execution.taskId,
-      agentId: execution.agentId,
-      question: {
-        title: 'Task Review Required',
-        description: `Review the output of task ${execution.taskId}`,
-        payload: {
-          executionId: execution.id,
-          output: execution.output,
-          error: execution.error,
-        },
-        suggestedAction: 'approve',
-        suggestedMessage: null,
-        options: [
-          { value: 'approve', label: 'Approve', description: 'Accept output', isDefault: true },
-          { value: 'reject', label: 'Reject', description: 'Reject and retry', isDefault: false },
-          { value: 'modify', label: 'Reassign', description: 'Assign to different agent', isDefault: false },
-        ],
-      },
-      metadata: { source: 'reviewer' },
-    });
-
-    if (response.action === 'approve') {
-      return { passed: true, suggestedAction: 'approve', feedback: response.message ?? '' };
-    }
-    if (response.action === 'reject') {
-      return { passed: false, suggestedAction: 'retry', feedback: response.message ?? '' };
-    }
-    if (response.action === 'modify') {
-      return { passed: false, suggestedAction: 'reassign', feedback: response.message ?? '' };
-    }
-
-    return { passed: false, suggestedAction: 'escalate', feedback: response.message ?? '' };
-  }
-
-  disposeSession(runId: string): void {
-    this.runSessions.delete(runId);
   }
 
   private sanityCheck(outputText: string, task: Task): ReviewResult | null {
