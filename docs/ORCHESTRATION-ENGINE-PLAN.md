@@ -1,5 +1,9 @@
 # MARS Orchestration Engine — Implementation Plan
 
+> **⚠️ SUPERSEDED**: 이 문서는 v1 아키텍처 (Bootstrap→Materialize→Decompose→Schedule pipeline) 기준.
+> v2 아키텍처는 `PLAN-v2.md` 참조. 주요 변경: Agent Pool 패턴, ReactiveScheduler, 상시활성 오케스트레이터.
+> 삭제된 모듈: `scheduler.ts`, `router.ts`, `claim.ts`, `heartbeat.ts`, `bootstrap-service.ts`, `instruction-analyzer.ts`
+
 > Multi-Agent Runtime Studio의 핵심인 멀티 에이전트 오케스트레이션 엔진 구현 계획서.
 > 이 문서는 Anthropic의 공식 에이전트 아키텍처 연구를 기반으로 설계되었음.
 
