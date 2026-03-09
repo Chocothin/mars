@@ -94,19 +94,23 @@ export class ClaudeCliExecutor implements ICliExecutor {
 
     args.push('--json');
 
-    if (options.workingDirectory) {
-      args.push('-C', options.workingDirectory);
-    }
+    if (!isResume) {
+      if (options.workingDirectory) {
+        args.push('-C', options.workingDirectory);
+      }
 
-    const permissionMode = options.permissionMode ?? config.permissionMode;
-    if (permissionMode === 'bypassPermissions') {
-      args.push('--dangerously-bypass-approvals-and-sandbox');
+      const permissionMode = options.permissionMode ?? config.permissionMode;
+      if (permissionMode === 'bypassPermissions') {
+        args.push('--dangerously-bypass-approvals-and-sandbox');
+      } else {
+        args.push('--full-auto');
+      }
+
+      if (options.mcpConfig) {
+        args.push(...buildCodexMcpFlags(options.mcpConfig));
+      }
     } else {
       args.push('--full-auto');
-    }
-
-    if (options.mcpConfig) {
-      args.push(...buildCodexMcpFlags(options.mcpConfig));
     }
 
     if (config.customArgs) {
@@ -185,7 +189,7 @@ export class ClaudeCliExecutor implements ICliExecutor {
         continue;
       }
     }
-    return messages.join('\n') || ndjson;
+    return messages.join('\n');
   }
 
   private extractCodexSessionId(ndjson: string): string | undefined {
@@ -233,20 +237,55 @@ export class ClaudeCliExecutor implements ICliExecutor {
     const reader = proc.stdout.getReader();
     const decoder = new TextDecoder();
     let fullOutput = '';
+    let lineBuffer = '';
+    let streamSessionId: string | undefined;
 
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
       const text = decoder.decode(value, { stream: true });
       fullOutput += text;
-      onChunk(text);
+
+      if (isCodex) {
+        lineBuffer += text;
+        const lines = lineBuffer.split('\n');
+        lineBuffer = lines.pop() ?? '';
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed) continue;
+          try {
+            const event = JSON.parse(trimmed);
+            if (event.type === 'item.completed' && event.item?.type === 'agent_message' && event.item.text) {
+              onChunk(event.item.text);
+            }
+            if (event.type === 'thread.started' && event.thread_id) {
+              streamSessionId = event.thread_id;
+            }
+          } catch { continue; }
+        }
+      } else {
+        onChunk(text);
+      }
+    }
+
+    if (isCodex && lineBuffer.trim()) {
+      try {
+        const event = JSON.parse(lineBuffer.trim());
+        if (event.type === 'item.completed' && event.item?.type === 'agent_message' && event.item.text) {
+          onChunk(event.item.text);
+        }
+        if (event.type === 'thread.started' && event.thread_id) {
+          streamSessionId = event.thread_id;
+        }
+      } catch {}
     }
 
     const stderr = await new Response(proc.stderr).text();
     const exitCode = await proc.exited;
 
     const output = isCodex ? this.extractCodexOutput(fullOutput) : fullOutput;
-    const sessionId = isCodex ? this.extractCodexSessionId(fullOutput) : this.extractClaudeSessionId(fullOutput);
+    const sessionId = streamSessionId
+      ?? (isCodex ? this.extractCodexSessionId(fullOutput) : this.extractClaudeSessionId(fullOutput));
 
     return {
       success: exitCode === 0,

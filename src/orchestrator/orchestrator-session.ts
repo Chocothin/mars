@@ -70,13 +70,16 @@ export class OrchestratorSession {
 
     try {
       const result = await this.executePrompt(userMessage, onChunk);
+      const aborted = this.abortController?.signal.aborted ?? false;
       const response = result.output;
 
       if (result.sessionId) {
         this.sessionId = result.sessionId;
       }
 
-      this.history.push({ role: 'orchestrator', content: response, timestamp: Date.now() });
+      if (!aborted || response.length > 0) {
+        this.history.push({ role: 'orchestrator', content: response, timestamp: Date.now() });
+      }
 
       this.state = 'idle';
       this.abortController = null;
