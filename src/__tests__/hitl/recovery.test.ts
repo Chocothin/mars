@@ -4,7 +4,7 @@ import { initDatabase, getDb } from '../../db/index';
 import { InteractionStore } from '../../hitl/interaction-store';
 import { InteractionGate } from '../../hitl/interaction-gate';
 import { RecoveryManager } from '../../hitl/recovery';
-import { DEFAULT_AUTONOMY_CONFIG } from '../../hitl/default-config';
+import { DEFAULT_APPROVAL_CONFIG } from '../../hitl/simple-config';
 import { eventBus } from '../../events/bus';
 import type { Interaction, PendingInteractionSnapshot } from '../../hitl/types';
 
@@ -24,7 +24,7 @@ beforeEach(async () => {
   await rm(TEST_DATA_DIR, { recursive: true, force: true });
   store = new InteractionStore({ db, dataDir: TEST_DATA_DIR });
   await store.initialize();
-  gate = new InteractionGate({ store, config: DEFAULT_AUTONOMY_CONFIG });
+  gate = new InteractionGate({ store, config: DEFAULT_APPROVAL_CONFIG });
 });
 
 afterEach(() => {

@@ -4,7 +4,7 @@ import { McpToolHandler } from '../../hitl/mcp-tool-handler';
 import type { McpToolInput, McpToolOutput } from '../../hitl/mcp-tool-handler';
 import { InteractionStore } from '../../hitl/interaction-store';
 import { InteractionGate } from '../../hitl/interaction-gate';
-import { DEFAULT_AUTONOMY_CONFIG } from '../../hitl/default-config';
+import { DEFAULT_APPROVAL_CONFIG } from '../../hitl/simple-config';
 
 let store: InteractionStore;
 let gate: InteractionGate;
@@ -20,7 +20,7 @@ beforeAll(async () => {
 beforeEach(() => {
   const db = getDb();
   db.exec('DELETE FROM interactions');
-  gate = new InteractionGate({ store, config: DEFAULT_AUTONOMY_CONFIG });
+  gate = new InteractionGate({ store, config: DEFAULT_APPROVAL_CONFIG });
   handler = new McpToolHandler({ gate });
 });
 

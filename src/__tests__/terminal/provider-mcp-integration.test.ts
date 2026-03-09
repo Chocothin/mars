@@ -5,7 +5,7 @@ import { insertSession } from '../../db/terminal-repo';
 import { insertMcpServer } from '../../db/mcp-server-repo';
 import { InteractionStore } from '../../hitl/interaction-store';
 import { InteractionGate } from '../../hitl/interaction-gate';
-import { DEFAULT_AUTONOMY_CONFIG } from '../../hitl/default-config';
+import { DEFAULT_APPROVAL_CONFIG } from '../../hitl/simple-config';
 import type { HitlDeps } from '../../terminal/provider/anthropic-api-provider';
 import type { Provider } from '../../types/provider';
 import type { TerminalSession } from '../../types/terminal';
@@ -141,7 +141,7 @@ beforeEach(async () => {
   const { mcpConnectionPool } = await import('../../mcp/pool');
   await mcpConnectionPool.invalidateAll();
 
-  gate = new InteractionGate({ store, config: DEFAULT_AUTONOMY_CONFIG });
+  gate = new InteractionGate({ store, config: DEFAULT_APPROVAL_CONFIG });
   hitlDeps = {
     interactionGate: gate,
     runContext: { runId: 'run-mcp-test', agentId: 'agent-mcp', sessionId: 'ses-mcp' },

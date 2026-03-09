@@ -1,9 +1,7 @@
 import { describe, it, expect, afterEach } from 'bun:test';
 import { ResultReviewer } from '../../orchestrator/reviewer';
 import { eventBus } from '../../events/bus';
-import type { TaskExecution, TaskExecutionOutput } from '../../orchestrator/types';
-import type { InteractionGate } from '../../hitl/interaction-gate';
-import type { InteractionResponse } from '../../hitl/types';
+import type { TaskExecution } from '../../orchestrator/types';
 import type { AllEvents } from '../../events/types';
 
 afterEach(() => {
@@ -40,23 +38,10 @@ function makeExecution(overrides: Partial<TaskExecution> = {}): TaskExecution {
   };
 }
 
-function createMockGate(response?: InteractionResponse): InteractionGate {
-  return {
-    request: async () => response ?? {
-      action: 'approve',
-      message: 'Looks good',
-      modifiedPayload: null,
-      respondedBy: 'human',
-    },
-    hasPending: () => false,
-    dispose: () => {},
-  } as unknown as InteractionGate;
-}
-
 describe('ResultReviewer', () => {
   describe('review', () => {
     it('approves completed execution with output', async () => {
-      const reviewer = new ResultReviewer({ interactionGate: createMockGate() });
+      const reviewer = new ResultReviewer({});
       const execution = makeExecution({ status: 'completed' });
 
       const result = await reviewer.review(execution);
@@ -67,7 +52,7 @@ describe('ResultReviewer', () => {
     });
 
     it('suggests retry for failed execution', async () => {
-      const reviewer = new ResultReviewer({ interactionGate: createMockGate() });
+      const reviewer = new ResultReviewer({});
       const execution = makeExecution({
         status: 'failed',
         output: null,
@@ -82,7 +67,7 @@ describe('ResultReviewer', () => {
     });
 
     it('suggests escalate for non-reviewable status', async () => {
-      const reviewer = new ResultReviewer({ interactionGate: createMockGate() });
+      const reviewer = new ResultReviewer({});
       const execution = makeExecution({
         status: 'running',
         output: null,
@@ -99,7 +84,7 @@ describe('ResultReviewer', () => {
       const events: AllEvents[] = [];
       eventBus.onAny((e) => events.push(e));
 
-      const reviewer = new ResultReviewer({ interactionGate: createMockGate() });
+      const reviewer = new ResultReviewer({});
       await reviewer.review(makeExecution({ status: 'completed' }));
 
       expect(events.map((e) => e.type)).toEqual(['review:started', 'review:passed']);
@@ -109,14 +94,14 @@ describe('ResultReviewer', () => {
       const events: AllEvents[] = [];
       eventBus.onAny((e) => events.push(e));
 
-      const reviewer = new ResultReviewer({ interactionGate: createMockGate() });
+      const reviewer = new ResultReviewer({});
       await reviewer.review(makeExecution({ status: 'failed', output: null, error: 'err' }));
 
       expect(events.map((e) => e.type)).toEqual(['review:started', 'review:failed']);
     });
 
     it('handles failed execution with null error gracefully', async () => {
-      const reviewer = new ResultReviewer({ interactionGate: createMockGate() });
+      const reviewer = new ResultReviewer({});
       const execution = makeExecution({
         status: 'failed',
         output: null,
@@ -125,69 +110,6 @@ describe('ResultReviewer', () => {
 
       const result = await reviewer.review(execution);
       expect(result.feedback).toBe('Execution failed.');
-    });
-  });
-
-  describe('requestHumanReview', () => {
-    it('returns approved result when human approves', async () => {
-      const gate = createMockGate({
-        action: 'approve',
-        message: 'LGTM',
-        modifiedPayload: null,
-        respondedBy: 'human',
-      });
-      const reviewer = new ResultReviewer({ interactionGate: gate });
-
-      const result = await reviewer.requestHumanReview(makeExecution());
-
-      expect(result.passed).toBe(true);
-      expect(result.suggestedAction).toBe('approve');
-      expect(result.feedback).toBe('LGTM');
-    });
-
-    it('returns retry result when human rejects', async () => {
-      const gate = createMockGate({
-        action: 'reject',
-        message: 'Needs fixes',
-        modifiedPayload: null,
-        respondedBy: 'human',
-      });
-      const reviewer = new ResultReviewer({ interactionGate: gate });
-
-      const result = await reviewer.requestHumanReview(makeExecution());
-
-      expect(result.passed).toBe(false);
-      expect(result.suggestedAction).toBe('retry');
-    });
-
-    it('returns reassign result when human modifies', async () => {
-      const gate = createMockGate({
-        action: 'modify',
-        message: 'Try another agent',
-        modifiedPayload: null,
-        respondedBy: 'human',
-      });
-      const reviewer = new ResultReviewer({ interactionGate: gate });
-
-      const result = await reviewer.requestHumanReview(makeExecution());
-
-      expect(result.passed).toBe(false);
-      expect(result.suggestedAction).toBe('reassign');
-    });
-
-    it('returns escalate for unknown actions', async () => {
-      const gate = createMockGate({
-        action: 'cancel',
-        message: null,
-        modifiedPayload: null,
-        respondedBy: 'human',
-      });
-      const reviewer = new ResultReviewer({ interactionGate: gate });
-
-      const result = await reviewer.requestHumanReview(makeExecution());
-
-      expect(result.passed).toBe(false);
-      expect(result.suggestedAction).toBe('escalate');
     });
   });
 });

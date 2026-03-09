@@ -7,7 +7,7 @@ import type { HitlDeps } from '../../terminal/provider/anthropic-api-provider';
 import { ProviderRegistry } from '../../terminal/provider/registry';
 import { InteractionStore } from '../../hitl/interaction-store';
 import { InteractionGate } from '../../hitl/interaction-gate';
-import { DEFAULT_AUTONOMY_CONFIG } from '../../hitl/default-config';
+import { DEFAULT_APPROVAL_CONFIG } from '../../hitl/simple-config';
 import type { Provider } from '../../types/provider';
 import type { TerminalSession } from '../../types/terminal';
 
@@ -68,7 +68,7 @@ beforeEach(() => {
   db.exec('DELETE FROM agents');
   db.exec('DELETE FROM mcp_servers');
 
-  gate = new InteractionGate({ store, config: DEFAULT_AUTONOMY_CONFIG });
+  gate = new InteractionGate({ store, config: DEFAULT_APPROVAL_CONFIG });
   hitlDeps = {
     interactionGate: gate,
     runContext: { runId: 'run-hitl-test', agentId: 'agent-hitl', sessionId: 'ses-hitl' },

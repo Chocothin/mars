@@ -10,17 +10,15 @@ import { getRunById, updateRun } from '../../db/run-repo';
 import { getTaskExecutionsByRunId } from '../../db/task-exec-repo';
 import { InteractionStore } from '../../hitl/interaction-store';
 import { InteractionGate } from '../../hitl/interaction-gate';
-import { getAutonomousConfig, getStrictConfig } from '../../hitl/default-config';
-import { SessionManager } from '../../execution/session-manager';
 import { ContextBuilder } from '../../execution/context-builder';
-import { AgentRunner } from '../../execution/agent-runner';
 import { AgentService } from '../../agents/service';
 import { TaskService } from '../../tasks/service';
-import { TaskScheduler } from '../../orchestrator/scheduler';
-import { AgentRouter } from '../../orchestrator/router';
+import { AgentPool } from '../../orchestrator/agent-pool';
+import { ReactiveScheduler } from '../../orchestrator/reactive-scheduler';
 import { TaskDecomposer } from '../../orchestrator/decomposer';
 import { ResultReviewer } from '../../orchestrator/reviewer';
 import { OrchestratorEngine } from '../../orchestrator/engine';
+import { MessageService } from '../../messaging/service';
 import { eventBus } from '../../events/bus';
 import type { ICliExecutor, CliExecuteOptions, CliExecuteResult, ProviderConnectionResult } from '../../types/provider';
 import type { Provider } from '../../types/provider';
@@ -28,7 +26,7 @@ import type { Agent } from '../../types/agent';
 import type { McpServer } from '../../types/mcp-server';
 import type { Project } from '../../types/project';
 import type { Task } from '../../types/task';
-import type { AutonomyConfig, AutonomyRule, QuestionType } from '../../hitl/types';
+import type { SimpleApprovalConfig } from '../../hitl/types';
 
 const TEST_DATA_DIR = `/tmp/mars-test-engine-e2e-${process.pid}`;
 const PROVIDER_ID = 'test-provider';
@@ -172,15 +170,8 @@ function createMockExecutor(overrides?: {
   };
 }
 
-function makeAllL1Config(): AutonomyConfig {
-  const config = getAutonomousConfig();
-  const allL1Rules = Object.fromEntries(
-    Object.keys(config.byQuestionType).map((key) => [
-      key,
-      { level: 1 as const, timeoutMs: null, fallbackAction: 'auto_approve' as const },
-    ]),
-  ) as Record<QuestionType, AutonomyRule>;
-  return { global: 1, byQuestionType: allL1Rules, byRun: null, byTask: null };
+function makeAllL1Config(): SimpleApprovalConfig {
+  return { approvalRequired: false, timeoutMs: 300_000, fallbackAction: 'auto_approve' };
 }
 
 interface TestHarness {
@@ -191,34 +182,34 @@ interface TestHarness {
 }
 
 async function createHarness(
-  autonomyConfig: AutonomyConfig,
+  approvalConfig: SimpleApprovalConfig,
   executorOverrides?: Parameters<typeof createMockExecutor>[0],
 ): Promise<TestHarness> {
   const db = getDb();
   const store = new InteractionStore({ db, dataDir: TEST_DATA_DIR });
   await store.initialize();
-  const gate = new InteractionGate({ store, config: autonomyConfig });
+  const gate = new InteractionGate({ store, config: approvalConfig });
   const mockExecutor = createMockExecutor(executorOverrides);
-  const sessionManager = new SessionManager();
+  const pool = new AgentPool();
+  const scheduler = new ReactiveScheduler();
+  const messageService = new MessageService();
   const contextBuilder = new ContextBuilder();
-  const agentRunner = new AgentRunner(sessionManager, mockExecutor);
   const agentService = new AgentService();
   const taskService = new TaskService();
-  const scheduler = new TaskScheduler();
-  const router = new AgentRouter({ agentService });
-  const decomposer = new TaskDecomposer({ agentRunner, taskService });
-  const reviewer = new ResultReviewer({ interactionGate: gate });
+  const decomposer = new TaskDecomposer({ cliExecutor: mockExecutor, taskService, agentService });
+  const reviewer = new ResultReviewer({ cliExecutor: mockExecutor });
 
   const engine = new OrchestratorEngine({
-    decomposer,
+    pool,
     scheduler,
-    router,
-    runner: agentRunner,
-    reviewer,
     contextBuilder,
     interactionGate: gate,
     agentService,
     taskService,
+    cliExecutor: mockExecutor,
+    messageService,
+    reviewer,
+    decomposer,
   });
 
   return { engine, gate, store, mockExecutor };
@@ -411,236 +402,7 @@ describe('OrchestratorEngine E2E Integration', () => {
     });
   });
 
-  describe('HITL Blocking (L3)', () => {
-    it('blocks on plan_approval and resumes after approve', async () => {
-      seedBaseData();
-      insertTask(makeTask({ id: 'task-plan', title: 'Plan approval test' }));
-
-      const strictConfig = getStrictConfig();
-      const harness = await createHarness(strictConfig);
-      activeHarness = harness;
-
-      const run = await harness.engine.createRun(PROJECT_ID, ['task-plan'], {
-        requireHumanApproval: false,
-        autoReview: true,
-        maxRetries: 0,
-      });
-
-      let planInteractionId: string | null = null;
-      eventBus.on('hitl:created', (event) => {
-        if (event.questionType === 'plan_approval') {
-          planInteractionId = event.interactionId;
-        }
-      });
-
-      const runPromise = harness.engine.startRun(run.id).catch(() => {});
-
-      await waitFor(() => planInteractionId !== null, 3000);
-      expect(planInteractionId).not.toBeNull();
-
-      const midRun = getRunById(run.id);
-      expect(midRun!.status).toBe('scheduling');
-
-      await harness.gate.respond(planInteractionId!, {
-        action: 'approve',
-        message: 'Looks good',
-        modifiedPayload: null,
-        respondedBy: 'human',
-      });
-
-      await runPromise;
-
-      const finalRun = getRunById(run.id);
-      expect(finalRun!.status).toBe('completed');
-    });
-
-    it('rejects run when plan_approval is rejected', async () => {
-      seedBaseData();
-      insertTask(makeTask({ id: 'task-reject', title: 'Plan rejection test' }));
-
-      const strictConfig = getStrictConfig();
-      const harness = await createHarness(strictConfig);
-      activeHarness = harness;
-
-      const run = await harness.engine.createRun(PROJECT_ID, ['task-reject'], {
-        requireHumanApproval: false,
-        autoReview: true,
-        maxRetries: 0,
-      });
-
-      let planInteractionId: string | null = null;
-      eventBus.on('hitl:created', (event) => {
-        if (event.questionType === 'plan_approval') {
-          planInteractionId = event.interactionId;
-        }
-      });
-
-      const runPromise = harness.engine.startRun(run.id).catch(() => {});
-
-      await waitFor(() => planInteractionId !== null, 3000);
-
-      await harness.gate.respond(planInteractionId!, {
-        action: 'reject',
-        message: 'Not acceptable',
-        modifiedPayload: null,
-        respondedBy: 'human',
-      });
-
-      await runPromise;
-
-      const finalRun = getRunById(run.id);
-      expect(finalRun!.status).toBe('failed');
-    });
-
-    it('blocks on decomposition_approval when subtasks are proposed', async () => {
-      seedBaseData();
-      insertTask(makeTask({ id: 'task-decomp', title: 'Complex task to decompose' }));
-
-      const subtasks = [
-        { title: 'Sub 1', description: 'First subtask', requiredCapabilities: ['coding'], dependsOn: [], estimatedDurationMin: 10 },
-        { title: 'Sub 2', description: 'Second subtask', requiredCapabilities: ['testing'], dependsOn: [], estimatedDurationMin: 5 },
-      ];
-
-      const strictConfig = getStrictConfig();
-      const harness = await createHarness(strictConfig, {
-        decomposerResult: {
-          success: true,
-          output: JSON.stringify(subtasks),
-          exitCode: 0,
-          durationMs: 50,
-        },
-      });
-      activeHarness = harness;
-
-      const run = await harness.engine.createRun(PROJECT_ID, ['task-decomp'], {
-        requireHumanApproval: false,
-        autoReview: true,
-        maxRetries: 0,
-      });
-
-      const interactionIds: Array<{ type: string; id: string }> = [];
-      eventBus.on('hitl:created', (event) => {
-        interactionIds.push({ type: event.questionType, id: event.interactionId });
-      });
-
-      const runPromise = harness.engine.startRun(run.id).catch(() => {});
-
-      await waitFor(() => interactionIds.some((i) => i.type === 'decomposition_approval'), 3000);
-
-      const decompInteraction = interactionIds.find((i) => i.type === 'decomposition_approval');
-      expect(decompInteraction).toBeDefined();
-
-      const midRun = getRunById(run.id);
-      expect(midRun!.status).toBe('decomposing');
-
-      await harness.gate.respond(decompInteraction!.id, {
-        action: 'approve',
-        message: 'Approved subtasks',
-        modifiedPayload: null,
-        respondedBy: 'human',
-      });
-
-      await waitFor(() => interactionIds.some((i) => i.type === 'plan_approval'), 3000);
-
-      const planInteraction = interactionIds.find((i) => i.type === 'plan_approval');
-      expect(planInteraction).toBeDefined();
-
-      await harness.gate.respond(planInteraction!.id, {
-        action: 'approve',
-        message: 'Plan approved',
-        modifiedPayload: null,
-        respondedBy: 'human',
-      });
-
-      await runPromise;
-
-      const finalRun = getRunById(run.id);
-      expect(finalRun!.status).toBe('completed');
-    });
-
-    it('blocks on assignment_approval when requireHumanApproval is true and L3', async () => {
-      seedBaseData();
-      insertTask(makeTask({ id: 'task-assign', title: 'Assignment approval test' }));
-
-      const allL3Config = getStrictConfig();
-      const harness = await createHarness(allL3Config);
-      activeHarness = harness;
-
-      const run = await harness.engine.createRun(PROJECT_ID, ['task-assign'], {
-        requireHumanApproval: true,
-        autoReview: true,
-        maxRetries: 0,
-      });
-
-      const interactionIds: Array<{ type: string; id: string }> = [];
-      eventBus.on('hitl:created', (event) => {
-        interactionIds.push({ type: event.questionType, id: event.interactionId });
-      });
-
-      const runPromise = harness.engine.startRun(run.id).catch(() => {});
-
-      await waitFor(() => interactionIds.some((i) => i.type === 'plan_approval'), 3000);
-      const planInteraction = interactionIds.find((i) => i.type === 'plan_approval')!;
-      await harness.gate.respond(planInteraction.id, {
-        action: 'approve',
-        message: null,
-        modifiedPayload: null,
-        respondedBy: 'human',
-      });
-
-      await waitFor(() => interactionIds.some((i) => i.type === 'assignment_approval'), 3000);
-      const assignInteraction = interactionIds.find((i) => i.type === 'assignment_approval');
-      expect(assignInteraction).toBeDefined();
-
-      await harness.gate.respond(assignInteraction!.id, {
-        action: 'approve',
-        message: null,
-        modifiedPayload: null,
-        respondedBy: 'human',
-      });
-
-      await runPromise;
-
-      const finalRun = getRunById(run.id);
-      expect(finalRun!.status).toBe('completed');
-    });
-  });
-
   describe('Run Lifecycle', () => {
-    it('cancels a run while waiting for HITL approval', async () => {
-      seedBaseData();
-      insertTask(makeTask({ id: 'task-cancel', title: 'Cancel test' }));
-
-      const strictConfig = getStrictConfig();
-      const harness = await createHarness(strictConfig);
-      activeHarness = harness;
-
-      const run = await harness.engine.createRun(PROJECT_ID, ['task-cancel'], {
-        requireHumanApproval: false,
-        autoReview: true,
-        maxRetries: 0,
-      });
-
-      let planBlocked = false;
-      eventBus.on('hitl:created', (event) => {
-        if (event.questionType === 'plan_approval') {
-          planBlocked = true;
-        }
-      });
-
-      const runPromise = harness.engine.startRun(run.id).catch(() => {});
-
-      await waitFor(() => planBlocked, 3000);
-
-      await harness.engine.cancelRun(run.id);
-
-      await runPromise;
-
-      const finalRun = getRunById(run.id);
-      expect(finalRun!.status).toBe('cancelled');
-      expect(finalRun!.completedAt).not.toBeNull();
-    });
-
     it('tracks run status transitions correctly', async () => {
       seedBaseData();
       insertTask(makeTask({ id: 'task-status', title: 'Status tracking test' }));
@@ -758,19 +520,18 @@ describe('OrchestratorEngine E2E Integration', () => {
       const store = new InteractionStore({ db, dataDir: TEST_DATA_DIR });
       await store.initialize();
       const gate = new InteractionGate({ store, config: makeAllL1Config() });
-      const sessionManager = new SessionManager();
+      const pool = new AgentPool();
+      const scheduler = new ReactiveScheduler();
+      const messageService = new MessageService();
       const contextBuilder = new ContextBuilder();
-      const agentRunner = new AgentRunner(sessionManager, mockExecutor);
       const agentService = new AgentService();
       const taskService = new TaskService();
-      const scheduler = new TaskScheduler();
-      const router = new AgentRouter({ agentService });
-      const decomposer = new TaskDecomposer({ agentRunner, taskService });
-      const reviewer = new ResultReviewer({ interactionGate: gate });
+      const decomposer = new TaskDecomposer({ cliExecutor: mockExecutor, taskService, agentService });
+      const reviewer = new ResultReviewer({ cliExecutor: mockExecutor });
       const engine = new OrchestratorEngine({
-        decomposer, scheduler, router, runner: agentRunner,
-        reviewer, contextBuilder, interactionGate: gate,
-        agentService, taskService,
+        pool, scheduler, contextBuilder, interactionGate: gate,
+        agentService, taskService, cliExecutor: mockExecutor,
+        messageService, reviewer, decomposer,
       });
       activeHarness = { engine, gate, store, mockExecutor };
 
@@ -878,97 +639,7 @@ describe('OrchestratorEngine E2E Integration', () => {
     });
   });
 
-  describe('L2 Inform + Override', () => {
-    it('auto-resolves L2 plan approval and allows later override', async () => {
-      seedBaseData();
-      insertTask(makeTask({ id: 'task-l2', title: 'L2 inform test' }));
-
-      const l2Config = makeAllL1Config();
-      l2Config.byQuestionType.plan_approval = {
-        level: 2,
-        timeoutMs: null,
-        fallbackAction: 'auto_approve',
-      };
-
-      const harness = await createHarness(l2Config);
-      activeHarness = harness;
-
-      const informedEvents: Array<{ questionType: string; interactionId: string; autoDecision: { action: string } }> = [];
-      eventBus.on('hitl:informed', (event) => {
-        informedEvents.push(event as any);
-      });
-
-      const run = await harness.engine.createRun(PROJECT_ID, ['task-l2'], {
-        requireHumanApproval: false,
-        autoReview: true,
-        maxRetries: 0,
-      });
-
-      await harness.engine.startRun(run.id);
-
-      const finalRun = getRunById(run.id);
-      expect(finalRun!.status).toBe('completed');
-
-      const planInformed = informedEvents.find(e => e.questionType === 'plan_approval');
-      expect(planInformed).toBeDefined();
-      expect(planInformed!.autoDecision.action).toBe('approve');
-
-      const overriddenEvents: Array<{ override: { action: string } }> = [];
-      eventBus.on('hitl:overridden', (event) => {
-        overriddenEvents.push(event as any);
-      });
-
-      await harness.gate.override(planInformed!.interactionId, {
-        action: 'reject',
-        message: 'Changed my mind',
-        modifiedPayload: null,
-        respondedBy: 'human',
-      });
-
-      expect(overriddenEvents.length).toBe(1);
-      expect(overriddenEvents[0]!.override.action).toBe('reject');
-    });
-  });
-
   describe('Pause/Resume', () => {
-    it('pauseRun sets status to paused and emits run:paused event', async () => {
-      seedBaseData();
-      insertTask(makeTask({ id: 'pause-evt', title: 'Pause event test' }));
-
-      const strictConfig = getStrictConfig();
-      const harness = await createHarness(strictConfig);
-      activeHarness = harness;
-
-      const run = await harness.engine.createRun(PROJECT_ID, ['pause-evt'], {
-        requireHumanApproval: false,
-        autoReview: true,
-        maxRetries: 0,
-      });
-
-      let planInteractionId: string | null = null;
-      eventBus.on('hitl:created', (event) => {
-        if (event.questionType === 'plan_approval') {
-          planInteractionId = event.interactionId;
-        }
-      });
-
-      let pauseEmitted = false;
-      eventBus.on('run:paused', () => { pauseEmitted = true; });
-
-      const runPromise = harness.engine.startRun(run.id).catch(() => {});
-
-      await waitFor(() => planInteractionId !== null, 3000);
-
-      await harness.engine.pauseRun(run.id);
-
-      const pausedRun = getRunById(run.id)!;
-      expect(pausedRun.status).toBe('paused');
-      expect(pauseEmitted).toBe(true);
-
-      await harness.engine.cancelRun(run.id);
-      await runPromise;
-    });
-
     it('resumeRun re-enters execution loop from saved execution plan', async () => {
       seedBaseData();
       insertTask(makeTask({ id: 'resume-a', title: 'Resume task A' }));
@@ -1084,227 +755,6 @@ describe('OrchestratorEngine E2E Integration', () => {
       const finalRun = getRunById(run.id);
       expect(finalRun!.status).toBe('failed');
       expect(taskCallCount).toBe(2);
-    });
-  });
-
-  describe('HITL Timeout + Fallback', () => {
-    it('applies auto_approve fallback after timeout expires', async () => {
-      seedBaseData();
-      insertTask(makeTask({ id: 'task-timeout', title: 'Timeout approve test' }));
-
-      const timeoutConfig = getStrictConfig();
-      timeoutConfig.byQuestionType.plan_approval = {
-        level: 3,
-        timeoutMs: 200,
-        fallbackAction: 'auto_approve',
-      };
-
-      const harness = await createHarness(timeoutConfig);
-      activeHarness = harness;
-
-      const timeoutEvents: Array<{ fallbackAction: string }> = [];
-      eventBus.on('hitl:timeout', (event) => {
-        timeoutEvents.push(event as any);
-      });
-
-      const run = await harness.engine.createRun(PROJECT_ID, ['task-timeout'], {
-        requireHumanApproval: false,
-        autoReview: true,
-        maxRetries: 0,
-      });
-
-      await harness.engine.startRun(run.id);
-      await waitFor(() => timeoutEvents.length > 0, 1000);
-
-      const finalRun = getRunById(run.id);
-      expect(finalRun!.status).toBe('completed');
-
-      const planTimeout = timeoutEvents.find(e => e.fallbackAction === 'auto_approve');
-      expect(planTimeout).toBeDefined();
-    });
-
-    it('fails run when timeout fallback is fail', async () => {
-      seedBaseData();
-      insertTask(makeTask({ id: 'task-timeout-fail', title: 'Timeout fail test' }));
-
-      const timeoutConfig = getStrictConfig();
-      timeoutConfig.byQuestionType.plan_approval = {
-        level: 3,
-        timeoutMs: 200,
-        fallbackAction: 'fail',
-      };
-
-      const harness = await createHarness(timeoutConfig);
-      activeHarness = harness;
-
-      const run = await harness.engine.createRun(PROJECT_ID, ['task-timeout-fail'], {
-        requireHumanApproval: false,
-        autoReview: true,
-        maxRetries: 0,
-      });
-
-      await harness.engine.startRun(run.id);
-
-      const finalRun = getRunById(run.id);
-      expect(finalRun!.status).toBe('failed');
-    });
-  });
-
-  describe('Decomposition Modify', () => {
-    it('uses modified subtasks when human responds with modify action', async () => {
-      seedBaseData();
-      insertTask(makeTask({ id: 'task-mod', title: 'Task to modify decomposition' }));
-
-      const originalSubtasks = [
-        { title: 'Original Sub 1', description: 'First', requiredCapabilities: ['coding'], dependsOn: [] as string[], estimatedDurationMin: 10 },
-        { title: 'Original Sub 2', description: 'Second', requiredCapabilities: ['testing'], dependsOn: [] as string[], estimatedDurationMin: 5 },
-      ];
-
-      const modifiedSubtasks = [
-        { title: 'Modified A', description: 'Better first', requiredCapabilities: ['coding'], dependsOn: [] as string[], estimatedDurationMin: 15 },
-        { title: 'Modified B', description: 'Depends on A', requiredCapabilities: ['coding'], dependsOn: ['Modified A'], estimatedDurationMin: 10 },
-        { title: 'Modified C', description: 'Independent third', requiredCapabilities: ['testing'], dependsOn: [] as string[], estimatedDurationMin: 5 },
-      ];
-
-      const strictConfig = getStrictConfig();
-      const harness = await createHarness(strictConfig, {
-        decomposerResult: {
-          success: true,
-          output: JSON.stringify(originalSubtasks),
-          exitCode: 0,
-          durationMs: 50,
-        },
-      });
-      activeHarness = harness;
-
-      const run = await harness.engine.createRun(PROJECT_ID, ['task-mod'], {
-        requireHumanApproval: false,
-        autoReview: true,
-        maxRetries: 0,
-      });
-
-      const interactionIds: Array<{ type: string; id: string }> = [];
-      eventBus.on('hitl:created', (event) => {
-        interactionIds.push({ type: event.questionType, id: event.interactionId });
-      });
-
-      const runPromise = harness.engine.startRun(run.id).catch(() => {});
-
-      await waitFor(() => interactionIds.some(i => i.type === 'decomposition_approval'), 3000);
-      const decompInteraction = interactionIds.find(i => i.type === 'decomposition_approval')!;
-
-      await harness.gate.respond(decompInteraction.id, {
-        action: 'modify',
-        message: 'Using modified subtasks',
-        modifiedPayload: { subtasks: modifiedSubtasks },
-        respondedBy: 'human',
-      });
-
-      await waitFor(() => interactionIds.some(i => i.type === 'plan_approval'), 3000);
-      const planInteraction = interactionIds.find(i => i.type === 'plan_approval')!;
-
-      await harness.gate.respond(planInteraction.id, {
-        action: 'approve',
-        message: null,
-        modifiedPayload: null,
-        respondedBy: 'human',
-      });
-
-      await runPromise;
-
-      const finalRun = getRunById(run.id);
-      expect(finalRun!.status).toBe('completed');
-      expect(finalRun!.result!.totalTasks).toBe(4);
-      expect(finalRun!.result!.completedTasks).toBe(4);
-      expect(finalRun!.executionPlan!.batches.length).toBe(2);
-    });
-  });
-
-  describe('Review Rejection Flows', () => {
-    it('escalates and fails run when human review responds with cancel', async () => {
-      seedBaseData();
-      insertTask(makeTask({ id: 'task-escalate', title: 'Escalation test' }));
-
-      const config = makeAllL1Config();
-      config.byQuestionType.result_approval = {
-        level: 3,
-        timeoutMs: null,
-        fallbackAction: 'fail',
-      };
-
-      const harness = await createHarness(config, {
-        streamingResult: {
-          success: false,
-          output: '',
-          exitCode: 1,
-          durationMs: 50,
-          error: 'Task failed',
-        },
-      });
-      activeHarness = harness;
-
-      const run = await harness.engine.createRun(PROJECT_ID, ['task-escalate'], {
-        requireHumanApproval: false,
-        autoReview: true,
-        maxRetries: 0,
-      });
-
-      const interactionIds: Array<{ type: string; id: string }> = [];
-      eventBus.on('hitl:created', (event) => {
-        interactionIds.push({ type: event.questionType, id: event.interactionId });
-      });
-
-      const failedEvents: Array<{ error: string }> = [];
-      eventBus.on('run:failed', (event) => {
-        failedEvents.push(event as any);
-      });
-
-      const runPromise = harness.engine.startRun(run.id).catch(() => {});
-
-      await waitFor(() => interactionIds.some(i => i.type === 'result_approval'), 3000);
-      const reviewInteraction = interactionIds.find(i => i.type === 'result_approval')!;
-
-      await harness.gate.respond(reviewInteraction.id, {
-        action: 'cancel',
-        message: 'Escalate to human',
-        modifiedPayload: null,
-        respondedBy: 'human',
-      });
-
-      await runPromise;
-
-      const finalRun = getRunById(run.id);
-      expect(finalRun!.status).toBe('failed');
-      expect(failedEvents.length).toBeGreaterThanOrEqual(1);
-      expect(failedEvents[0]!.error).toContain('escalated');
-    });
-  });
-
-  describe('Per-run Autonomy Overrides', () => {
-    it('overrides base strict config with per-run L1 autonomy', async () => {
-      seedBaseData();
-      insertTask(makeTask({ id: 'task-run-ovr', title: 'Run override test' }));
-
-      const strictConfig = getStrictConfig();
-      const harness = await createHarness(strictConfig);
-      activeHarness = harness;
-
-      const run = await harness.engine.createRun(PROJECT_ID, ['task-run-ovr'], {
-        requireHumanApproval: false,
-        autoReview: true,
-        maxRetries: 0,
-        hitl: {
-          autonomyOverrides: {
-            plan_approval: { level: 1, timeoutMs: null, fallbackAction: 'auto_approve' },
-          },
-          taskAutonomyOverrides: null,
-        },
-      });
-
-      await harness.engine.startRun(run.id);
-
-      const finalRun = getRunById(run.id);
-      expect(finalRun!.status).toBe('completed');
     });
   });
 

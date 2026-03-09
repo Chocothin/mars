@@ -4,7 +4,7 @@ import { InteractionStore } from '../../hitl/interaction-store';
 import { InteractionGate } from '../../hitl/interaction-gate';
 import { InteractionAPI } from '../../hitl/interaction-api';
 import { InteractionSSE } from '../../hitl/interaction-sse';
-import { DEFAULT_AUTONOMY_CONFIG } from '../../hitl/default-config';
+import { DEFAULT_APPROVAL_CONFIG } from '../../hitl/simple-config';
 import { eventBus } from '../../events/bus';
 import type { Interaction, InteractionResponse } from '../../hitl/types';
 
@@ -93,7 +93,7 @@ beforeAll(async () => {
 beforeEach(() => {
   const db = getDb();
   db.exec('DELETE FROM interactions');
-  gate = new InteractionGate({ store, config: DEFAULT_AUTONOMY_CONFIG });
+  gate = new InteractionGate({ store, config: DEFAULT_APPROVAL_CONFIG });
   api = new InteractionAPI({ store, gate });
 });
 
@@ -264,64 +264,6 @@ describe('InteractionAPI', () => {
     });
   });
 
-  describe('handleOverride', () => {
-    it('returns 404 for non-existent interaction', async () => {
-      const req = makeRequest('POST', { action: 'reject' });
-      const res = await api.handleOverride('nonexistent', req);
-      expect(res.status).toBe(404);
-    });
-
-    it('returns 400 for non-Level-2 interaction', async () => {
-      const id = await createLevel3Interaction('run-override-level3');
-      const req = makeRequest('POST', { action: 'reject' });
-      const res = await api.handleOverride(id, req);
-      expect(res.status).toBe(400);
-      const body = await json(res);
-      expect(body.error).toContain('Level 2');
-    });
-
-    it('returns 400 for invalid JSON body', async () => {
-      const id = await createLevel2Interaction('run-override-badjson');
-      const req = new Request('http://localhost:3001', {
-        method: 'POST',
-        body: 'not json',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      const res = await api.handleOverride(id, req);
-      expect(res.status).toBe(400);
-    });
-
-    it('returns 400 when action is missing', async () => {
-      const id = await createLevel2Interaction('run-override-noaction');
-      const req = makeRequest('POST', {});
-      const res = await api.handleOverride(id, req);
-      expect(res.status).toBe(400);
-    });
-
-    it('successfully overrides a notified Level 2 interaction', async () => {
-      const id = await createLevel2Interaction('run-override-ok');
-      const req = makeRequest('POST', { action: 'reject', message: 'Override: stop this' });
-      const res = await api.handleOverride(id, req);
-      expect(res.status).toBe(200);
-      const body = await json(res);
-      expect(body.success).toBe(true);
-      expect(body.data.status).toBe('overridden');
-      expect(body.data.response.action).toBe('reject');
-      expect(body.data.response.respondedBy).toBe('human');
-    });
-
-    it('returns 409 when interaction is already overridden', async () => {
-      const id = await createLevel2Interaction('run-override-twice');
-      const req1 = makeRequest('POST', { action: 'reject' });
-      await api.handleOverride(id, req1);
-
-      const req2 = makeRequest('POST', { action: 'approve' });
-      const res = await api.handleOverride(id, req2);
-      expect(res.status).toBe(409);
-      const body = await json(res);
-      expect(body.error).toContain('not in notified status');
-    });
-  });
 });
 
 describe('InteractionSSE', () => {
