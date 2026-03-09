@@ -16,6 +16,7 @@ import { insertRun, getRunById, updateRun, queryRuns } from '../db/run-repo';
 import { insertTaskExecution, updateTaskExecution, getTaskExecutionsByRunId } from '../db/task-exec-repo';
 import { getTaskByIdGlobal, updateTask as updateTaskInDb } from '../db/task-repo';
 import { getProjectById } from '../db/project-repo';
+import { getAgentById } from '../db/agent-repo';
 import { getDb } from '../db/index';
 import { AgentPool } from './agent-pool';
 import { ReactiveScheduler } from './reactive-scheduler';
@@ -417,7 +418,8 @@ export class OrchestratorEngine implements IOrchestratorEngine {
     const project = getProjectById(run.projectId);
     if (!project) throw new Error(`Project not found: ${run.projectId}`);
 
-    const agentRecord = { id: agentId, name: entry.agentName } as Agent;
+    const agentRecord = getAgentById(agentId);
+    if (!agentRecord) throw new Error(`Agent record not found: ${agentId}`);
 
     const config: AgentProcessConfig = {
       agent: agentRecord,

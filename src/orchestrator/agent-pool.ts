@@ -1,6 +1,27 @@
 import { eventBus } from '../events/bus';
 import type { Agent } from '../types/agent';
 
+// ─── Agent Type Resolution ───
+
+const AGENT_TYPE_KEYWORDS = [
+  'orchestrator', 'decomposer', 'reviewer',
+  'backend', 'frontend', 'designer',
+  'qa', 'devops', 'data', 'security',
+] as const;
+
+/**
+ * Resolve agent "type" from agent name by keyword matching.
+ * "Backend Developer" → "backend", "AI Orchestrator" → "orchestrator"
+ * Shared between AgentPool and Decomposer to ensure consistent type resolution.
+ */
+export function resolveAgentType(agentName: string): string {
+  const name = agentName.toLowerCase();
+  for (const keyword of AGENT_TYPE_KEYWORDS) {
+    if (name.includes(keyword)) return keyword;
+  }
+  return name.replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+}
+
 // ─── AgentPool: 스레드 풀 패턴의 에이전트 관리 ───
 
 export type PoolAgentStatus = 'idle' | 'working' | 'spawning' | 'terminated';
@@ -37,7 +58,7 @@ export class AgentPool {
     const entry: AgentPoolEntry = {
       agentId: agent.id,
       agentName: agent.name,
-      agentType: this.resolveAgentType(agent),
+      agentType: this.resolveType(agent),
       status: 'idle',
       currentTaskId: null,
       sessionId: null,
@@ -209,23 +230,7 @@ export class AgentPool {
 
   // ─── Internal ───
 
-  /**
-   * Heuristic: resolve agent "type" from agent.name by keyword matching.
-   * "Backend Developer" → "backend", "AI Orchestrator" → "orchestrator"
-   */
-  private resolveAgentType(agent: Agent): string {
-    const name = agent.name.toLowerCase();
-
-    const typeKeywords = [
-      'orchestrator', 'decomposer', 'reviewer',
-      'backend', 'frontend', 'designer',
-      'qa', 'devops', 'data', 'security',
-    ];
-
-    for (const keyword of typeKeywords) {
-      if (name.includes(keyword)) return keyword;
-    }
-
-    return name.replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+  private resolveType(agent: Agent): string {
+    return resolveAgentType(agent.name);
   }
 }

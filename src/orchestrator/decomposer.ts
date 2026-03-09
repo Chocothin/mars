@@ -6,6 +6,7 @@ import { eventBus } from '../events/bus';
 import { getTaskByIdGlobal } from '../db/task-repo';
 import { getDefaultProvider } from '../db/provider-repo';
 import type { DependencyEdge } from './types';
+import { resolveAgentType } from './agent-pool';
 
 // ─── Graph: transitive reduction (DFS reachability) ───
 
@@ -81,7 +82,7 @@ export class TaskDecomposer implements ITaskDecomposer {
 
     const enabledAgents = await this.agentService.list({ enabled: true });
     const agentListBlock = enabledAgents
-      .map(a => `  - name: "${a.name}", type: "${a.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}"`)
+      .map(a => `  - name: "${a.name}", type: "${resolveAgentType(a.name)}"`)
       .join('\n');
 
     const prompt = [
