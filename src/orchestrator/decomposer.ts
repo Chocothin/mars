@@ -6,7 +6,7 @@ import { eventBus } from '../events/bus';
 import { getTaskByIdGlobal } from '../db/task-repo';
 import { getDefaultProvider } from '../db/provider-repo';
 import type { DependencyEdge } from './types';
-import { resolveAgentType } from './agent-pool';
+import { AGENT_TYPES, getAgentType, normalizeAgentType } from './agent-pool';
 
 // ─── Graph: transitive reduction (DFS reachability) ───
 
@@ -82,8 +82,9 @@ export class TaskDecomposer implements ITaskDecomposer {
 
     const enabledAgents = await this.agentService.list({ enabled: true });
     const agentListBlock = enabledAgents
-      .map(a => `  - name: "${a.name}", type: "${resolveAgentType(a.name)}"`)
+      .map(a => `  - "${getAgentType(a)}"`)
       .join('\n');
+    const validTypesStr = AGENT_TYPES.join(', ');
 
     const prompt = [
       'You are a task decomposition specialist.',
@@ -101,7 +102,7 @@ export class TaskDecomposer implements ITaskDecomposer {
       'Return a JSON array of subtasks. Each subtask must have:',
       '- title: string (action verb: "Implement", "Create", "Build", "Write tests for")',
       '- description: string (WHAT code/files to produce)',
-      '- assignedAgentType: string[] (array of matching agent type names from above — e.g. ["backend"])',
+      `- assignedAgentType: string[] (MUST use ONLY these exact values: [${validTypesStr}] — e.g. ["backend"])`,
       '- requiredCapabilities: string[]',
       '- dependsOn: string[] (titles of other subtasks from THIS decomposition ONLY)',
       '- estimatedDurationMin: number',
@@ -153,13 +154,17 @@ export class TaskDecomposer implements ITaskDecomposer {
       }
 
       const raw = (subtask as unknown as Record<string, unknown>).assignedAgentType;
-      const assignedAgentType: string[] = Array.isArray(raw)
+      const rawList: string[] = Array.isArray(raw)
         ? raw as string[]
         : typeof raw === 'string'
           ? raw.split(',').map(s => s.trim()).filter(Boolean)
           : subtask.requiredCapabilities.length > 0 && subtask.requiredCapabilities[0]
             ? [subtask.requiredCapabilities[0]]
             : [];
+
+      const assignedAgentType: string[] = rawList
+        .map(v => normalizeAgentType(v))
+        .filter((v): v is NonNullable<typeof v> => v !== null);
 
       const input: CreateTaskInput = {
         title: subtask.title,

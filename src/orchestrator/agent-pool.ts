@@ -1,25 +1,59 @@
 import { eventBus } from '../events/bus';
 import type { Agent } from '../types/agent';
 
-// ─── Agent Type Resolution ───
+// ─── Agent Type Enum ───
 
-const AGENT_TYPE_KEYWORDS = [
+export const AGENT_TYPES = [
   'orchestrator', 'decomposer', 'reviewer',
   'backend', 'frontend', 'designer',
   'qa', 'devops', 'data', 'security',
 ] as const;
 
+export type AgentType = typeof AGENT_TYPES[number];
+
+const agentTypeSet: ReadonlySet<string> = new Set(AGENT_TYPES);
+
+export function isValidAgentType(value: string): value is AgentType {
+  return agentTypeSet.has(value);
+}
+
 /**
- * Resolve agent "type" from agent name by keyword matching.
- * "Backend Developer" → "backend", "AI Orchestrator" → "orchestrator"
- * Shared between AgentPool and Decomposer to ensure consistent type resolution.
+ * Normalize a free-text agent type string to a valid AgentType enum value.
+ * Handles LLM output variations:
+ *   "Backend Developer" → "backend"
+ *   "agent-backend"     → "backend"
+ *   "QA Engineer"       → "qa"
+ *   "backend"           → "backend" (already valid)
+ * Returns null if no match found.
  */
-export function resolveAgentType(agentName: string): string {
-  const name = agentName.toLowerCase();
-  for (const keyword of AGENT_TYPE_KEYWORDS) {
-    if (name.includes(keyword)) return keyword;
+export function normalizeAgentType(raw: string): AgentType | null {
+  const lower = raw.toLowerCase().trim();
+
+  if (isValidAgentType(lower)) return lower;
+
+  const stripped = lower.replace(/^agent-/, '');
+  if (isValidAgentType(stripped)) return stripped;
+
+  for (const t of AGENT_TYPES) {
+    if (lower.includes(t)) return t;
   }
-  return name.replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+
+  return null;
+}
+
+export function getAgentType(agent: { id: string; name: string }): AgentType {
+  const fromId = normalizeAgentType(agent.id);
+  if (fromId) return fromId;
+
+  const fromName = normalizeAgentType(agent.name);
+  if (fromName) return fromName;
+
+  throw new Error(`Cannot resolve agent type for id="${agent.id}" name="${agent.name}". Add to AGENT_TYPES.`);
+}
+
+/** @deprecated Use normalizeAgentType() instead. Kept for backward compatibility during migration. */
+export function resolveAgentType(agentName: string): string {
+  return normalizeAgentType(agentName) ?? agentName.replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
 }
 
 // ─── AgentPool: 스레드 풀 패턴의 에이전트 관리 ───
@@ -231,6 +265,6 @@ export class AgentPool {
   // ─── Internal ───
 
   private resolveType(agent: Agent): string {
-    return resolveAgentType(agent.name);
+    return getAgentType(agent);
   }
 }
