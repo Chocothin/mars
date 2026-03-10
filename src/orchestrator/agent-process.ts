@@ -199,9 +199,7 @@ export class AgentProcess {
       options.mcpConfig = writeMcpConfig(context.mcpServers);
     }
 
-    if (this.externalSessionId) {
-      options.resumeSessionId = this.externalSessionId;
-    }
+    // Codex `exec resume` hangs on completed sessions — each task gets a fresh session
 
     return options;
   }
