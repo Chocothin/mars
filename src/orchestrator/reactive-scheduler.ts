@@ -221,34 +221,44 @@ export class ReactiveScheduler {
     return changed;
   }
 
-  // ─── Decomposer Marking ───
+  // ─── Decomposable Task Discovery ───
 
   /**
-   * 미분해 부모 task에 assignedAgentType = ["decomposer"]를 자동 부여.
-   * 조건: status IN (backlog, ready), assigned_agent_type IS NULL, 자식 없음.
-   * 마킹 후 TaskMatcher가 idle decomposer와 매칭.
-   * Idempotent: 한번 마킹된 task는 다음 tick에서 재마킹되지 않음 (IS NULL 조건).
+   * 디컴포징 대상 task 검색 (에이전트 할당과 무관).
+   * 조건:
+   *   - status NOT IN (done, cancelled, failed)
+   *   - 자식 없음 (= leaf이거나 아직 분해 안 된 부모)
+   *   - assigned_agent_id IS NULL (현재 실행 중이 아닌 task)
+   * 정렬: deps 충족된 task 우선, 그 다음 created_at 오름차순.
    */
-  markUndecomposedForDecomposer(scopeTaskIds: string[]): string[] {
+  findDecomposableTasks(scopeTaskIds: string[]): Task[] {
     if (scopeTaskIds.length === 0) return [];
 
     const db = getDb();
     const placeholders = scopeTaskIds.map(() => '?').join(',');
 
     const sql = `
-      UPDATE tasks
-      SET assigned_agent_type = '["decomposer"]', updated_at = ?
+      SELECT * FROM tasks
       WHERE id IN (${placeholders})
-        AND status IN ('backlog', 'ready')
-        AND assigned_agent_type IS NULL
+        AND status NOT IN ('done', 'cancelled', 'failed')
         AND NOT EXISTS (
           SELECT 1 FROM tasks child WHERE child.parent_task_id = tasks.id
         )
-      RETURNING id
+        AND assigned_agent_id IS NULL
+        AND (assigned_agent_type IS NULL OR assigned_agent_type = '[]')
+      ORDER BY
+        CASE WHEN NOT EXISTS (
+          SELECT 1 FROM task_dependencies td
+          INNER JOIN tasks dep ON dep.id = td.depends_on_task_id
+          WHERE td.task_id = tasks.id AND dep.status != 'done'
+        ) THEN 0 ELSE 1 END,
+        created_at ASC
     `;
 
-    const rows = db.prepare(sql).all(Date.now(), ...scopeTaskIds) as Array<{ id: string }>;
-    return rows.map(r => r.id);
+    const rows = db.prepare(sql).all(...scopeTaskIds) as Array<Record<string, unknown>>;
+    return rows
+      .map(r => getTaskByIdGlobal(r.id as string))
+      .filter((t): t is Task => t !== null);
   }
 
   // ─── Completion Check ───

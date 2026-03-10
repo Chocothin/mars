@@ -218,54 +218,64 @@ export function queryTasksGlobal(q: TaskQuery & { projectId?: string }): Task[] 
   const conditions: string[] = [];
   const params: Record<string, string | number | null> = {};
 
+  // When no specific project is requested, exclude tasks from archived projects
+  const needsProjectJoin = q.projectId === undefined;
+  if (needsProjectJoin) {
+    conditions.push('p.status = $projectStatus');
+    params.$projectStatus = 'active';
+  }
+
   if (q.projectId !== undefined) {
-    conditions.push('project_id = $projectId');
+    conditions.push('t.project_id = $projectId');
     params.$projectId = q.projectId;
   }
   if (q.status !== undefined) {
-    conditions.push('status = $status');
+    conditions.push('t.status = $status');
     params.$status = q.status;
   }
   if (q.priority !== undefined) {
-    conditions.push('priority = $priority');
+    conditions.push('t.priority = $priority');
     params.$priority = q.priority;
   }
   if (q.parentTaskId !== undefined) {
     if (q.parentTaskId === null) {
-      conditions.push('parent_task_id IS NULL');
+      conditions.push('t.parent_task_id IS NULL');
     } else {
-      conditions.push('parent_task_id = $parentTaskId');
+      conditions.push('t.parent_task_id = $parentTaskId');
       params.$parentTaskId = q.parentTaskId;
     }
   }
   if (q.assignedAgentType !== undefined) {
-    conditions.push('EXISTS (SELECT 1 FROM json_each(assigned_agent_type) WHERE json_each.value = $assignedAgentType)');
+    conditions.push('EXISTS (SELECT 1 FROM json_each(t.assigned_agent_type) WHERE json_each.value = $assignedAgentType)');
     params.$assignedAgentType = q.assignedAgentType;
   }
   if (q.assignedAgentId !== undefined) {
-    conditions.push('assigned_agent_id = $assignedAgentId');
+    conditions.push('t.assigned_agent_id = $assignedAgentId');
     params.$assignedAgentId = q.assignedAgentId;
   }
   if (q.search !== undefined) {
-    conditions.push('(title LIKE $search OR description LIKE $search)');
+    conditions.push('(t.title LIKE $search OR t.description LIKE $search)');
     params.$search = `%${q.search}%`;
   }
 
   const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+  const fromClause = needsProjectJoin
+    ? 'tasks t INNER JOIN projects p ON t.project_id = p.id'
+    : 'tasks t';
 
   const sortColumnMap: Record<string, string> = {
-    order: '"order"',
-    createdAt: 'created_at',
-    updatedAt: 'updated_at',
-    priority: 'priority',
+    order: 't."order"',
+    createdAt: 't.created_at',
+    updatedAt: 't.updated_at',
+    priority: 't.priority',
   };
-  const sortColumn = q.sortBy ? sortColumnMap[q.sortBy] ?? '"order"' : '"order"';
+  const sortColumn = q.sortBy ? sortColumnMap[q.sortBy] ?? 't."order"' : 't."order"';
   const sortOrder = q.sortOrder === 'desc' ? 'DESC' : 'ASC';
 
   const limit = q.limit ?? 100;
   const offset = q.offset ?? 0;
 
-  const sql = `SELECT * FROM tasks ${whereClause} ORDER BY ${sortColumn} ${sortOrder} LIMIT ${limit} OFFSET ${offset}`;
+  const sql = `SELECT t.* FROM ${fromClause} ${whereClause} ORDER BY ${sortColumn} ${sortOrder} LIMIT ${limit} OFFSET ${offset}`;
   const stmt = db.prepare(sql);
   const rows = stmt.all(params) as TaskRow[];
   return rows.map(rowToTask);
@@ -280,8 +290,10 @@ export function countTasks(projectId?: string): number {
     return row.cnt;
   }
 
-  const stmt = db.prepare('SELECT COUNT(*) as cnt FROM tasks');
-  const row = stmt.get() as { cnt: number };
+  const stmt = db.prepare(
+    'SELECT COUNT(*) as cnt FROM tasks t INNER JOIN projects p ON t.project_id = p.id WHERE p.status = $status',
+  );
+  const row = stmt.get({ $status: 'active' }) as { cnt: number };
   return row.cnt;
 }
 
@@ -290,12 +302,12 @@ export function getTaskStatusBreakdown(projectId?: string): Record<string, numbe
 
   const sql = projectId
     ? 'SELECT status, COUNT(*) as cnt FROM tasks WHERE project_id = $projectId GROUP BY status'
-    : 'SELECT status, COUNT(*) as cnt FROM tasks GROUP BY status';
+    : 'SELECT t.status, COUNT(*) as cnt FROM tasks t INNER JOIN projects p ON t.project_id = p.id WHERE p.status = $status GROUP BY t.status';
 
   const stmt = db.prepare(sql);
   const rows = projectId
     ? (stmt.all({ $projectId: projectId }) as Array<{ status: string; cnt: number }>)
-    : (stmt.all() as Array<{ status: string; cnt: number }>);
+    : (stmt.all({ $status: 'active' }) as Array<{ status: string; cnt: number }>);
 
   const breakdown: Record<string, number> = {};
   for (const row of rows) {

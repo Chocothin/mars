@@ -74,6 +74,7 @@ export class OrchestratorEngine implements IOrchestratorEngine {
   private decomposer: ITaskDecomposer;
   private activeRuns = new Map<string, AbortController>();
   private processes = new Map<string, AgentProcess>();
+  private decomposing = new Set<string>();
 
   constructor(deps: {
     pool: AgentPool;
@@ -279,10 +280,16 @@ export class OrchestratorEngine implements IOrchestratorEngine {
 
       if (this.scheduler.isAllDone(scopeTaskIds)) break;
 
-      this.scheduler.markUndecomposedForDecomposer(scopeTaskIds);
+      // Decomposition: 직접 호출 (matcher/pool 미경유)
+      const decomposable = this.scheduler.findDecomposableTasks(scopeTaskIds);
+      for (const task of decomposable) {
+        if (signal.aborted) break;
+        if (this.decomposing.has(task.id)) continue;
+        this.triggerDecomposition(run, task);
+      }
 
+      // Execution: matcher로 ready leaf ↔ idle agent 매칭
       const pairs = this.matcher.match(scopeTaskIds);
-
       for (const pair of pairs) {
         if (signal.aborted) break;
         this.dispatchTask(run, pair, signal);
@@ -303,11 +310,7 @@ export class OrchestratorEngine implements IOrchestratorEngine {
     updateTaskInDb(task.id, { status: 'in_progress', assignedAgentId: agent.agentId });
     eventBus.emit({ type: 'task:assigned', taskId: task.id, agentId: agent.agentId, runId: run.id });
 
-    if (agent.agentType === 'decomposer') {
-      this.dispatchDecomposition(run, agent, task);
-    } else {
-      this.dispatchExecution(run, agent, task, signal);
-    }
+    this.dispatchExecution(run, agent, task, signal);
   }
 
   private dispatchExecution(run: Run, agent: AgentPoolEntry, task: Task, _signal: AbortSignal): void {
@@ -322,7 +325,8 @@ export class OrchestratorEngine implements IOrchestratorEngine {
     });
   }
 
-  private dispatchDecomposition(run: Run, agent: AgentPoolEntry, task: Task): void {
+  private triggerDecomposition(run: Run, task: Task): void {
+    this.decomposing.add(task.id);
     const project = getProjectById(run.projectId);
     const projectContext = project?.directoryPath ?? '';
 
@@ -337,7 +341,7 @@ export class OrchestratorEngine implements IOrchestratorEngine {
         updateTaskInDb(task.id, { status: 'failed' });
       })
       .finally(() => {
-        this.pool.release(agent.agentId);
+        this.decomposing.delete(task.id);
       });
   }
 
