@@ -105,7 +105,7 @@ export class ReactiveScheduler {
    * 주어진 agentType에 매칭되는 ready leaf task를 priority→order→createdAt 순으로 1개 반환.
    * leaf task = 자식이 없는 task (직접 실행 대상).
    */
-  findReadyForAgent(agentType: string, scopeTaskIds: string[]): Task | null {
+  findReadyForAgent(agentType: string, agentId: string, scopeTaskIds: string[]): Task | null {
     if (scopeTaskIds.length === 0) return null;
 
     const db = getDb();
@@ -119,6 +119,7 @@ export class ReactiveScheduler {
         AND EXISTS (
           SELECT 1 FROM json_each(assigned_agent_type) WHERE json_each.value = ?
         )
+        AND (assigned_agent_id IS NULL OR assigned_agent_id = ?)
         AND NOT EXISTS (
           SELECT 1 FROM tasks child WHERE child.parent_task_id = tasks.id
         )
@@ -136,7 +137,7 @@ export class ReactiveScheduler {
     `;
 
     const stmt = db.prepare(sql);
-    const row = stmt.get(...scopeTaskIds, agentType) as Record<string, unknown> | null;
+    const row = stmt.get(...scopeTaskIds, agentType, agentId) as Record<string, unknown> | null;
     if (!row) return null;
 
     return getTaskByIdGlobal(row.id as string);

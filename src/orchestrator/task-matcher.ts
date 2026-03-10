@@ -26,7 +26,7 @@ export class TaskMatcher {
     const claimedTaskIds = new Set<string>();
 
     for (const agent of idleAgents) {
-      const task = this.scheduler.findReadyForAgent(agent.agentType, scopeTaskIds);
+      const task = this.scheduler.findReadyForAgent(agent.agentType, agent.agentId, scopeTaskIds);
       if (!task) continue;
       if (claimedTaskIds.has(task.id)) continue;
 
@@ -37,7 +37,7 @@ export class TaskMatcher {
     return pairs;
   }
 
-  hasWork(agentType: string, scopeTaskIds: string[]): boolean {
-    return this.scheduler.findReadyForAgent(agentType, scopeTaskIds) !== null;
+  hasWork(agentType: string, agentId: string, scopeTaskIds: string[]): boolean {
+    return this.scheduler.findReadyForAgent(agentType, agentId, scopeTaskIds) !== null;
   }
 }

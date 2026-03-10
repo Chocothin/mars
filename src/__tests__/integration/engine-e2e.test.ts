@@ -374,13 +374,12 @@ describe('OrchestratorEngine E2E Integration', () => {
       expect(exec!.durationMs).not.toBeNull();
     });
 
-    // TODO: assignedAgentId routing not yet implemented in reactive engine
-    it.skip('honors persistent assignedAgentId when executing a task', async () => {
+    it('honors persistent assignedAgentId when executing a task', async () => {
       insertProvider(makeProvider());
       insertAgent(makeAgent({ id: AGENT_ID, name: 'Primary Agent' }));
       insertAgent(makeAgent({ id: 'test-agent-2', name: 'Secondary Agent' }));
       insertProject(makeProject({ agentIds: [AGENT_ID, 'test-agent-2'] }));
-      insertTask(makeTask({ id: 'task-assigned-agent', assignedAgentId: 'test-agent-2' }));
+      insertTask(makeTask({ id: 'task-assigned-agent', assignedAgentType: ['test-agent', 'test-agent-2'], assignedAgentId: 'test-agent-2' }));
 
       const harness = await createHarness(makeAllL1Config());
       activeHarness = harness;
