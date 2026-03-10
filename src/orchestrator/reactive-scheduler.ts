@@ -153,6 +153,104 @@ export class ReactiveScheduler {
       .filter((t): t is Task => t !== null);
   }
 
+  // ─── Parent Status Derivation ───
+
+  /**
+   * 부모 태스크의 status를 자식 status에서 파생.
+   * 규칙 (우선순위 순):
+   *   1. 부모간 의존성 미충족 → blocked (변경 안 함)
+   *   2. 자식 중 in_progress ≥1 → parent = in_progress
+   *   3. 자식 중 in_progress 0 AND failed ≥1 → parent = failed
+   *   4. 모든 자식 done/cancelled → parent = done
+   *   5. 그 외 → 변경 없음
+   * 매 tick 호출.
+   */
+  refreshParentStatuses(scopeTaskIds: string[]): string[] {
+    if (scopeTaskIds.length === 0) return [];
+
+    const db = getDb();
+    const placeholders = scopeTaskIds.map(() => '?').join(',');
+    const now = Date.now();
+
+    const sql = `
+      WITH parent_child_stats AS (
+        SELECT
+          p.id AS parent_id,
+          p.status AS current_status,
+          COUNT(*) AS total_children,
+          SUM(CASE WHEN c.status = 'in_progress' THEN 1 ELSE 0 END) AS cnt_in_progress,
+          SUM(CASE WHEN c.status = 'failed' THEN 1 ELSE 0 END) AS cnt_failed,
+          SUM(CASE WHEN c.status IN ('done', 'cancelled') THEN 1 ELSE 0 END) AS cnt_terminal
+        FROM tasks p
+        INNER JOIN tasks c ON c.parent_task_id = p.id
+        WHERE p.id IN (${placeholders})
+          AND NOT EXISTS (
+            SELECT 1 FROM task_dependencies td
+            INNER JOIN tasks dep ON dep.id = td.depends_on_task_id
+            WHERE td.task_id = p.id
+              AND dep.status != 'done'
+          )
+        GROUP BY p.id, p.status
+      )
+      SELECT parent_id, current_status,
+        CASE
+          WHEN cnt_in_progress > 0 THEN 'in_progress'
+          WHEN cnt_in_progress = 0 AND cnt_failed > 0 THEN 'failed'
+          WHEN cnt_terminal = total_children THEN 'done'
+          ELSE NULL
+        END AS derived_status
+      FROM parent_child_stats
+    `;
+
+    const rows = db.prepare(sql).all(...scopeTaskIds) as Array<{
+      parent_id: string;
+      current_status: string;
+      derived_status: string | null;
+    }>;
+
+    const changed: string[] = [];
+    const updateStmt = db.prepare('UPDATE tasks SET status = ?, updated_at = ? WHERE id = ?');
+
+    for (const row of rows) {
+      if (row.derived_status && row.derived_status !== row.current_status) {
+        updateStmt.run(row.derived_status, now, row.parent_id);
+        changed.push(row.parent_id);
+      }
+    }
+
+    return changed;
+  }
+
+  // ─── Decomposer Marking ───
+
+  /**
+   * 미분해 부모 task에 assignedAgentType = ["decomposer"]를 자동 부여.
+   * 조건: status IN (backlog, ready), assigned_agent_type IS NULL, 자식 없음.
+   * 마킹 후 TaskMatcher가 idle decomposer와 매칭.
+   * Idempotent: 한번 마킹된 task는 다음 tick에서 재마킹되지 않음 (IS NULL 조건).
+   */
+  markUndecomposedForDecomposer(scopeTaskIds: string[]): string[] {
+    if (scopeTaskIds.length === 0) return [];
+
+    const db = getDb();
+    const placeholders = scopeTaskIds.map(() => '?').join(',');
+
+    const sql = `
+      UPDATE tasks
+      SET assigned_agent_type = '["decomposer"]', updated_at = ?
+      WHERE id IN (${placeholders})
+        AND status IN ('backlog', 'ready')
+        AND assigned_agent_type IS NULL
+        AND NOT EXISTS (
+          SELECT 1 FROM tasks child WHERE child.parent_task_id = tasks.id
+        )
+      RETURNING id
+    `;
+
+    const rows = db.prepare(sql).all(Date.now(), ...scopeTaskIds) as Array<{ id: string }>;
+    return rows.map(r => r.id);
+  }
+
   // ─── Completion Check ───
 
   isAllDone(scopeTaskIds: string[]): boolean {

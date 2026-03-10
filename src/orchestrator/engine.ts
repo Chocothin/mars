@@ -18,7 +18,7 @@ import { getTaskByIdGlobal, updateTask as updateTaskInDb } from '../db/task-repo
 import { getProjectById } from '../db/project-repo';
 import { getAgentById } from '../db/agent-repo';
 import { getDb } from '../db/index';
-import { AgentPool } from './agent-pool';
+import { AgentPool, type AgentPoolEntry } from './agent-pool';
 import { ReactiveScheduler } from './reactive-scheduler';
 import { TaskMatcher } from './task-matcher';
 import { AgentProcess } from './agent-process';
@@ -270,35 +270,17 @@ export class OrchestratorEngine implements IOrchestratorEngine {
   // ─── Core Loop ───
 
   private async coreLoop(run: Run, signal: AbortSignal): Promise<void> {
-    const decomposing = new Set<string>();
-
     while (!signal.aborted) {
       const scopeTaskIds = this.scheduler.collectAllTaskIds(run.rootTaskIds);
 
       this.scheduler.activateBacklogTasks(scopeTaskIds);
       this.scheduler.refreshReadyTasks(scopeTaskIds);
+      this.scheduler.refreshParentStatuses(scopeTaskIds);
 
       if (this.scheduler.isAllDone(scopeTaskIds)) break;
 
-      // Decompose undecomposed parent tasks (fire-and-forget per task)
-      const undecomposed = this.scheduler.findUndecomposedParents(scopeTaskIds);
-      for (const parentTask of undecomposed) {
-        if (decomposing.has(parentTask.id)) continue;
-        decomposing.add(parentTask.id);
+      this.scheduler.markUndecomposedForDecomposer(scopeTaskIds);
 
-        const project = getProjectById(run.projectId);
-        const projectContext = project?.directoryPath ?? '';
-
-        this.decomposer.decompose(parentTask.id, projectContext)
-          .catch((err) => {
-            console.error(`[Run ${run.id}] Decomposition failed for task ${parentTask.id}:`, err);
-          })
-          .finally(() => {
-            decomposing.delete(parentTask.id);
-          });
-      }
-
-      // Match ready leaf tasks to idle agents
       const pairs = this.matcher.match(scopeTaskIds);
 
       for (const pair of pairs) {
@@ -319,10 +301,17 @@ export class OrchestratorEngine implements IOrchestratorEngine {
     if (!assignResult.success) return;
 
     updateTaskInDb(task.id, { status: 'in_progress', assignedAgentId: agent.agentId });
-
-    const proc = this.getOrCreateProcess(agent.agentId, run);
-
     eventBus.emit({ type: 'task:assigned', taskId: task.id, agentId: agent.agentId, runId: run.id });
+
+    if (agent.agentType === 'decomposer') {
+      this.dispatchDecomposition(run, agent, task);
+    } else {
+      this.dispatchExecution(run, agent, task, signal);
+    }
+  }
+
+  private dispatchExecution(run: Run, agent: AgentPoolEntry, task: Task, _signal: AbortSignal): void {
+    const proc = this.getOrCreateProcess(agent.agentId, run);
 
     proc.execute(task, [], (chunk) => {
       eventBus.emit({ type: 'task:progress', taskId: task.id, chunk });
@@ -331,6 +320,25 @@ export class OrchestratorEngine implements IOrchestratorEngine {
     }).catch((error) => {
       this.onTaskFailed(run, task.id, agent.agentId, error);
     });
+  }
+
+  private dispatchDecomposition(run: Run, agent: AgentPoolEntry, task: Task): void {
+    const project = getProjectById(run.projectId);
+    const projectContext = project?.directoryPath ?? '';
+
+    eventBus.emit({ type: 'decompose:started', taskId: task.id });
+
+    this.decomposer.decompose(task.id, projectContext)
+      .then(() => {
+        eventBus.emit({ type: 'decompose:approved', taskId: task.id, subtaskIds: [] });
+      })
+      .catch((err) => {
+        console.error(`[Run ${run.id}] Decomposition failed for ${task.id}:`, err);
+        updateTaskInDb(task.id, { status: 'failed' });
+      })
+      .finally(() => {
+        this.pool.release(agent.agentId);
+      });
   }
 
   private async onTaskCompleted(

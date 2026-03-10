@@ -27,6 +27,7 @@ import {
   allDependenciesDone,
   hasUnresolvedDependencies,
   getTransitiveDependencyIds,
+  getFailedLeafDescendants,
 } from '../db/task-repo';
 import { getProjectById } from '../db/project-repo';
 import { getAgentById } from '../db/agent-repo';
@@ -258,6 +259,46 @@ export class TaskService implements ITaskService {
 
     const updated = getTaskById(projectId, taskId)!;
     return { task: updated, warnings, autoTransitioned };
+  }
+
+  async retryTask(projectId: string, taskId: string): Promise<{ task: Task; retriedCount: number }> {
+    this.ensureProjectExists(projectId);
+
+    const task = getTaskById(projectId, taskId);
+    if (!task) throw new Error('Task not found');
+
+    if (hasChildren(taskId)) {
+      const failedLeaves = getFailedLeafDescendants(taskId);
+      if (failedLeaves.length === 0) throw new Error('No failed tasks to retry');
+
+      for (const leaf of failedLeaves) {
+        const newStatus = allDependenciesDone(leaf.id) ? 'ready' : 'blocked';
+        const maxOrder = getMaxOrder(leaf.projectId, newStatus);
+        updateTask(leaf.id, {
+          status: newStatus,
+          retryCount: 0,
+          assignedAgentId: null,
+          order: maxOrder + 1,
+        });
+      }
+
+      const updated = getTaskById(projectId, taskId)!;
+      return { task: updated, retriedCount: failedLeaves.length };
+    }
+
+    if (task.status !== 'failed') throw new Error('Task is not in failed status');
+
+    const newStatus = allDependenciesDone(taskId) ? 'ready' : 'blocked';
+    const maxOrder = getMaxOrder(projectId, newStatus);
+    updateTask(taskId, {
+      status: newStatus,
+      retryCount: 0,
+      assignedAgentId: null,
+      order: maxOrder + 1,
+    });
+
+    const updated = getTaskById(projectId, taskId)!;
+    return { task: updated, retriedCount: 1 };
   }
 
   async delete(projectId: string, taskId: string): Promise<boolean> {

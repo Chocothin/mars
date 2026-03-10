@@ -433,6 +433,31 @@ export function hasUnresolvedDependencies(taskId: string): boolean {
   return row.cnt > 0;
 }
 
+export function getFailedLeafDescendants(taskId: string): Task[] {
+  const db = getDb();
+  const childStmt = db.prepare('SELECT id, status FROM tasks WHERE parent_task_id = ?');
+  const results: Task[] = [];
+
+  const collect = (parentId: string) => {
+    const children = childStmt.all(parentId) as Array<{ id: string; status: string }>;
+    if (children.length === 0) return;
+    for (const child of children) {
+      const grandchildren = childStmt.all(child.id) as Array<{ id: string }>;
+      if (grandchildren.length === 0) {
+        if (child.status === 'failed') {
+          const task = getTaskByIdGlobal(child.id);
+          if (task) results.push(task);
+        }
+      } else {
+        collect(child.id);
+      }
+    }
+  };
+
+  collect(taskId);
+  return results;
+}
+
 export function getTransitiveDependencyIds(taskId: string): Set<string> {
   const visited = new Set<string>();
   const queue = [taskId];

@@ -40,7 +40,7 @@ function errorResponse(message: string, status: number): Response {
 interface TaskRouteMatch {
   projectId: string;
   taskId?: string;
-  subResource?: 'dependencies' | 'assignment';
+  subResource?: 'dependencies' | 'assignment' | 'retry';
   depTaskId?: string;
 }
 
@@ -58,6 +58,9 @@ function matchTaskRoute(pathname: string): TaskRouteMatch | null {
   }
   if (segments.length === 7 && segments[1] === 'api' && segments[2] === 'projects' && segments[4] === 'tasks' && segments[6] === 'assignment') {
     return { projectId: segments[3]!, taskId: segments[5]!, subResource: 'assignment' };
+  }
+  if (segments.length === 7 && segments[1] === 'api' && segments[2] === 'projects' && segments[4] === 'tasks' && segments[6] === 'retry') {
+    return { projectId: segments[3]!, taskId: segments[5]!, subResource: 'retry' };
   }
   if (segments.length === 8 && segments[1] === 'api' && segments[2] === 'projects' && segments[4] === 'tasks' && segments[6] === 'dependencies') {
     return { projectId: segments[3]!, taskId: segments[5]!, subResource: 'dependencies', depTaskId: segments[7]! };
@@ -95,6 +98,11 @@ export async function handleTaskRoutes(req: Request, url: URL): Promise<Response
       if (method === 'GET') return await handleGetAssignment(match.projectId, match.taskId);
       if (method === 'PUT') return await handleSetAssignment(match.projectId, match.taskId, req);
       if (method === 'DELETE') return await handleClearAssignment(match.projectId, match.taskId);
+      return null;
+    }
+
+    if (match.subResource === 'retry' && match.taskId) {
+      if (method === 'POST') return await handleRetryTask(match.projectId, match.taskId);
       return null;
     }
 
@@ -368,6 +376,19 @@ async function handleDelete(projectId: string, taskId: string): Promise<Response
   return Response.json(
     { success: true, data: { deleted: true } } satisfies ApiResponse<{ deleted: boolean }>,
   );
+}
+
+async function handleRetryTask(projectId: string, taskId: string): Promise<Response> {
+  try {
+    const result = await service.retryTask(projectId, taskId);
+    return Response.json({
+      success: true,
+      data: { task: serializeTask(result.task), retriedCount: result.retriedCount },
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Retry failed';
+    return errorResponse(message, 400);
+  }
 }
 
 async function handleGetDependencies(projectId: string, taskId: string): Promise<Response> {
