@@ -30,6 +30,15 @@ export class ReactiveScheduler {
           WHERE td.task_id = tasks.id
             AND dep.status != 'done'
         )
+        AND (
+          parent_task_id IS NULL
+          OR NOT EXISTS (
+            SELECT 1 FROM task_dependencies ptd
+            INNER JOIN tasks pdep ON pdep.id = ptd.depends_on_task_id
+            WHERE ptd.task_id = tasks.parent_task_id
+              AND pdep.status != 'done'
+          )
+        )
       RETURNING id
     `;
 
@@ -59,6 +68,15 @@ export class ReactiveScheduler {
           INNER JOIN tasks dep ON dep.id = td.depends_on_task_id
           WHERE td.task_id = tasks.id
             AND dep.status != 'done'
+        )
+        AND (
+          parent_task_id IS NULL
+          OR NOT EXISTS (
+            SELECT 1 FROM task_dependencies ptd
+            INNER JOIN tasks pdep ON pdep.id = ptd.depends_on_task_id
+            WHERE ptd.task_id = tasks.parent_task_id
+              AND pdep.status != 'done'
+          )
         )
       RETURNING id
     `;
