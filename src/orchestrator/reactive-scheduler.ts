@@ -28,7 +28,7 @@ export class ReactiveScheduler {
           SELECT 1 FROM task_dependencies td
           INNER JOIN tasks dep ON dep.id = td.depends_on_task_id
           WHERE td.task_id = tasks.id
-            AND dep.status != 'done'
+            AND dep.status NOT IN ('done', 'failed', 'cancelled')
         )
         AND (
           parent_task_id IS NULL
@@ -36,7 +36,7 @@ export class ReactiveScheduler {
             SELECT 1 FROM task_dependencies ptd
             INNER JOIN tasks pdep ON pdep.id = ptd.depends_on_task_id
             WHERE ptd.task_id = tasks.parent_task_id
-              AND pdep.status != 'done'
+              AND pdep.status NOT IN ('done', 'failed', 'cancelled')
           )
         )
       RETURNING id
@@ -67,7 +67,7 @@ export class ReactiveScheduler {
           SELECT 1 FROM task_dependencies td
           INNER JOIN tasks dep ON dep.id = td.depends_on_task_id
           WHERE td.task_id = tasks.id
-            AND dep.status != 'done'
+            AND dep.status NOT IN ('done', 'failed', 'cancelled')
         )
         AND (
           parent_task_id IS NULL
@@ -75,7 +75,7 @@ export class ReactiveScheduler {
             SELECT 1 FROM task_dependencies ptd
             INNER JOIN tasks pdep ON pdep.id = ptd.depends_on_task_id
             WHERE ptd.task_id = tasks.parent_task_id
-              AND pdep.status != 'done'
+              AND pdep.status NOT IN ('done', 'failed', 'cancelled')
           )
         )
       RETURNING id
@@ -91,7 +91,7 @@ export class ReactiveScheduler {
           SELECT 1 FROM task_dependencies td
           INNER JOIN tasks dep ON dep.id = td.depends_on_task_id
           WHERE td.task_id = tasks.id
-            AND dep.status != 'done'
+            AND dep.status NOT IN ('done', 'failed', 'cancelled')
         )
     `;
     db.prepare(blockedSql).run(now, ...scopeTaskIds);
@@ -206,7 +206,7 @@ export class ReactiveScheduler {
             SELECT 1 FROM task_dependencies td
             INNER JOIN tasks dep ON dep.id = td.depends_on_task_id
             WHERE td.task_id = p.id
-              AND dep.status != 'done'
+              AND dep.status NOT IN ('done', 'failed', 'cancelled')
           )
         GROUP BY p.id, p.status
       )

@@ -41,14 +41,14 @@ export function normalizeAgentType(raw: string): AgentType | null {
   return null;
 }
 
-export function getAgentType(agent: { id: string; name: string }): AgentType {
+export function getAgentType(agent: { id: string; name: string }): string {
   const fromId = normalizeAgentType(agent.id);
   if (fromId) return fromId;
 
   const fromName = normalizeAgentType(agent.name);
   if (fromName) return fromName;
 
-  throw new Error(`Cannot resolve agent type for id="${agent.id}" name="${agent.name}". Add to AGENT_TYPES.`);
+  return agent.id.replace(/^agent-/, '').replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
 }
 
 /** @deprecated Use normalizeAgentType() instead. Kept for backward compatibility during migration. */

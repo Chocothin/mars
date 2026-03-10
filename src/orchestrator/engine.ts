@@ -404,6 +404,9 @@ export class OrchestratorEngine implements IOrchestratorEngine {
       eventBus.emit({ type: 'task:retrying', taskId, attempt: retryCount });
     } else {
       updateTaskInDb(taskId, { status: 'failed' });
+      const exec = this.buildExecution(run.id, taskId, agentId, 'failed', null);
+      exec.error = errorMsg;
+      insertTaskExecution(exec);
     }
 
     this.pool.release(agentId);
