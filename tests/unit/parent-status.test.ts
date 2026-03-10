@@ -4,7 +4,7 @@ import { TaskService } from '../../src/tasks/service';
 import { getTaskById, updateTask, deleteTask } from '../../src/db/task-repo';
 import { ReactiveScheduler } from '../../src/orchestrator/reactive-scheduler';
 
-const PROJECT_ID = '8d521bc0-b621-45e1-a07f-8f5a106a0a9f';
+const PROJECT_ID = '81054c4e-33cc-42da-82c7-674e40c9bd4a';
 const service = new TaskService();
 const scheduler = new ReactiveScheduler();
 const cleanup: string[] = [];

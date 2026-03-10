@@ -109,6 +109,7 @@ export class OrchestratorRegistry {
     const parts: string[] = [];
 
     parts.push(`# Project: ${project.name}`);
+    parts.push(`\n## Project ID\n${project.id}`);
     if (project.description) {
       parts.push(`\n## Description\n${project.description}`);
     }
@@ -116,7 +117,42 @@ export class OrchestratorRegistry {
       parts.push(`\n## Instructions\n${project.instructions}`);
     }
     parts.push(`\n## Directory\n${project.directoryPath}`);
+    parts.push(this.buildMcpToolCatalog(project.id));
 
     return parts.join('\n');
+  }
+
+  private buildMcpToolCatalog(projectId: string): string {
+    return `
+## MARS Orchestrator MCP Tools
+
+You have access to the \`mars-orchestrator\` MCP server. Use these tools for ALL project/task/run management.
+**Always pass projectId: "${projectId}" when required.**
+
+### Task Management
+- \`task_create\` — Create a task. Params: { projectId, title, description?, status?, priority?, parentTaskId?, assignedAgentType?, dependsOnTaskIds? }
+- \`task_list\` — List tasks. Params: { projectId, status?, priority?, parentTaskId?, search? }
+- \`task_get\` — Get task by ID. Params: { taskId }
+- \`task_update\` — Update task. Params: { projectId, taskId, patch: { title?, description?, status?, priority?, assignedAgentType? } }
+- \`task_delete\` — Delete task. Params: { projectId, taskId }
+- \`task_add_dependency\` — Add dependency. Params: { projectId, taskId, dependsOnTaskId }
+- \`task_remove_dependency\` — Remove dependency. Params: { projectId, taskId, dependsOnTaskId }
+
+### Agent Management
+- \`agent_list\` — List project agents. Params: { }
+- \`agent_list_global\` — List ALL system agents. Params: { search? }
+- \`project_add_agent\` — Add agent to project. Params: { agentId }
+
+### Run Management
+- \`run_create\` — Create a run. Params: { projectId, taskIds, config? }
+- \`run_start\` — Start a pending run. Params: { runId }
+- \`run_list\` — List runs. Params: { projectId?, status? }
+- \`run_cancel\` — Cancel a run. Params: { runId }
+
+### Project
+- \`project_get\` — Get project info. Params: { projectId }
+- \`project_get_context\` — Get full context (agents, MCP servers, runs). Params: { projectId }
+
+**IMPORTANT**: Do NOT try to write to the database directly or create files for task storage. Always use these MCP tools.`;
   }
 }

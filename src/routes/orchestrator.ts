@@ -46,6 +46,11 @@ export async function handleOrchestratorRoutes(req: Request, url: URL): Promise<
     return handleChatStatus(projectId);
   }
 
+  if (path.match(/^\/api\/projects\/[^/]+\/chat\/reset$/) && method === 'POST') {
+    const projectId = path.split('/')[3]!;
+    return handleChatReset(projectId);
+  }
+
   if (path === '/api/orchestrator/sessions' && method === 'GET') {
     return handleListSessions();
   }
@@ -199,6 +204,20 @@ function handleChatAbort(projectId: string): Response {
     return Response.json({
       success: true,
       data: { projectId, action: 'aborted' },
+    } satisfies ApiResponse);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return errorResponse(message, 500);
+  }
+}
+
+function handleChatReset(projectId: string): Response {
+  try {
+    const registry = getOrchestratorRegistry();
+    registry.terminate(projectId);
+    return Response.json({
+      success: true,
+      data: { projectId, action: 'reset' },
     } satisfies ApiResponse);
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Internal server error';
