@@ -105,12 +105,12 @@ export class ClaudeCliExecutor implements ICliExecutor {
       } else {
         args.push('--full-auto');
       }
-
-      if (options.mcpConfig) {
-        args.push(...buildCodexMcpFlags(options.mcpConfig));
-      }
     } else {
       args.push('--full-auto');
+    }
+
+    if (options.mcpConfig) {
+      args.push(...buildCodexMcpFlags(options.mcpConfig));
     }
 
     if (config.customArgs) {
