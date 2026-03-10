@@ -39,7 +39,7 @@ export class OrchestratorRegistry {
     }
 
     const mcpConfigPath = this.resolveMcpConfig(project);
-    const projectContext = this.buildProjectContext(project);
+    const projectContext = await this.buildProjectContext(project);
 
     const config: OrchestratorSessionConfig = {
       agent: orchestratorAgent,
@@ -105,7 +105,7 @@ export class OrchestratorRegistry {
     return writeMcpConfig(servers, { 'mars-orchestrator': marsOrchEntry });
   }
 
-  private buildProjectContext(project: Project): string | undefined {
+  private async buildProjectContext(project: Project): Promise<string | undefined> {
     const parts: string[] = [];
 
     parts.push(`# Project: ${project.name}`);
@@ -117,9 +117,27 @@ export class OrchestratorRegistry {
       parts.push(`\n## Instructions\n${project.instructions}`);
     }
     parts.push(`\n## Directory\n${project.directoryPath}`);
+    parts.push(await this.buildAgentCatalog());
     parts.push(this.buildMcpToolCatalog(project.id));
 
     return parts.join('\n');
+  }
+
+  private async buildAgentCatalog(): Promise<string> {
+    try {
+      const agents = await this.agentService.list({ enabled: true });
+      if (agents.length === 0) return '';
+
+      const lines = agents
+        .filter(a => !a.name.toLowerCase().includes('orchestrator'))
+        .map(a => `- **${a.name}** (${a.id}) — ${a.description ?? ''}`);
+
+      if (lines.length === 0) return '';
+
+      return `\n## 시스템 에이전트 (참고용 — Decomposer가 하위 태스크에 자동 배정)\n${lines.join('\n')}`;
+    } catch {
+      return '';
+    }
   }
 
   private buildMcpToolCatalog(projectId: string): string {
