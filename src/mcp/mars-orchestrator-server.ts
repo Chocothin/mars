@@ -236,10 +236,6 @@ server.registerTool('task_create', {
   annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
 }, async ({ projectId, ...input }) => {
   const scopedProjectId = ensureScopeProjectId(projectId);
-  const existing = await taskService.list(scopedProjectId, { limit: 51 });
-  if (existing.length >= 50) {
-    throw new Error('Project has 50 tasks (maximum). Complete or delete tasks first.');
-  }
   return jsonResult({ task: await taskService.create(scopedProjectId, input) });
 });
 
