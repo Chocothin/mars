@@ -129,6 +129,11 @@ export class OrchestratorSession {
     this.history = [];
   }
 
+  resetSession(): void {
+    this.history = [];
+    this.sessionId = null;
+  }
+
   // ─── Internal ───
 
   private async executePrompt(

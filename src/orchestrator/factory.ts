@@ -16,6 +16,7 @@ import { ResultReviewer } from './reviewer';
 import { AgentPool } from './agent-pool';
 import { ReactiveScheduler } from './reactive-scheduler';
 import { OrchestratorRegistry } from './orchestrator-registry';
+import { OrchestratorListener } from './orchestrator-listener';
 import { getDefaultProvider } from '../db/provider-repo';
 
 // ─── Shared orchestrator instances (lazy singleton) ─────────────────────────
@@ -27,6 +28,7 @@ let interactionStoreInstance: InteractionStore | null = null;
 let interactionGateInstance: InteractionGate | null = null;
 let summaryListenerInstance: SummaryListener | null = null;
 let orchestratorRegistryInstance: OrchestratorRegistry | null = null;
+let orchestratorListenerInstance: OrchestratorListener | null = null;
 
 function ensureInitialized(): void {
   if (engineInstance) return;
@@ -75,6 +77,7 @@ function ensureInitialized(): void {
 
   if (!process.env.MARS_MCP_MODE) {
     engineInstance.recoverZombieRuns();
+    orchestratorListenerInstance = new OrchestratorListener(orchestratorRegistryInstance, scheduler);
   }
 }
 

@@ -30,6 +30,7 @@ export type MarsEvent =
   | { type: 'run:failed'; runId: string; error: string }
   | { type: 'run:cancelled'; runId: string }
   | { type: 'run:paused'; runId: string }
+  | { type: 'run:stalled'; runId: string; reason: string; stalledTaskIds: string[] }
 
   // Task execution lifecycle
   | { type: 'task:assigned'; taskId: string; agentId: string; runId: string }

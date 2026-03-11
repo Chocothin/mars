@@ -609,7 +609,7 @@ server.registerTool('message_send', {
     runId: z.string(),
     from: z.string(),
     to: z.string(),
-    type: z.enum(['dm', 'broadcast', 'task_assignment', 'shutdown', 'plan_approval', 'idle_notification']),
+    type: z.enum(['dm', 'broadcast', 'task_assignment', 'shutdown', 'plan_approval', 'idle_notification', 'task_report', 'escalation']),
     payload: z.record(z.string(), z.unknown()),
   },
   annotations: { readOnlyHint: false, destructiveHint: false },

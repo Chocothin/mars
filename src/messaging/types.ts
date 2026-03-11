@@ -5,7 +5,9 @@ export type MessageType =
   | 'shutdown'
   | 'plan_approval'
   | 'idle_notification'
-  | 'review_feedback';
+  | 'review_feedback'
+  | 'task_report'
+  | 'escalation';
 
 export interface Message {
   id: string;

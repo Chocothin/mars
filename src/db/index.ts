@@ -398,6 +398,7 @@ function createSchema(db: Database): void {
   db.exec('CREATE INDEX IF NOT EXISTS idx_messages_from_agent ON messages(from_agent_id, created_at)');
 
   ensureNullableTextColumn(db, 'messages', 'summary');
+  migrateMessagesCheckConstraint(db);
 
   // ─── Agent Lifecycle: Heartbeats ───
 
@@ -490,6 +491,51 @@ function ensureTerminalSessionsIsolation(db: Database): void {
 
     db.exec('DROP TABLE terminal_sessions');
     db.exec('ALTER TABLE terminal_sessions_v2 RENAME TO terminal_sessions');
+    db.exec('COMMIT');
+  } catch (error) {
+    db.exec('ROLLBACK');
+    throw error;
+  }
+}
+
+function migrateMessagesCheckConstraint(db: Database): void {
+  const row = db.query("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'messages'").get() as { sql?: string } | null;
+  const createSql = row?.sql ?? '';
+
+  if (createSql.includes('task_report')) return;
+  if (!createSql.includes('CHECK')) return;
+
+  db.exec('BEGIN');
+  try {
+    db.exec(`
+      CREATE TABLE messages_v2 (
+        id TEXT PRIMARY KEY,
+        run_id TEXT NOT NULL,
+        from_agent_id TEXT NOT NULL,
+        to_agent_id TEXT NOT NULL,
+        type TEXT NOT NULL CHECK (type IN ('dm','broadcast','task_assignment','shutdown','plan_approval','idle_notification','review_feedback','task_report','escalation')),
+        payload TEXT NOT NULL DEFAULT '{}',
+        summary TEXT,
+        read INTEGER NOT NULL DEFAULT 0,
+        created_at INTEGER NOT NULL,
+        read_at INTEGER,
+        FOREIGN KEY (run_id) REFERENCES runs(id) ON DELETE CASCADE
+      )
+    `);
+
+    db.exec(`
+      INSERT INTO messages_v2 (id, run_id, from_agent_id, to_agent_id, type, payload, summary, read, created_at, read_at)
+      SELECT id, run_id, from_agent_id, to_agent_id, type, payload, summary, read, created_at, read_at
+      FROM messages
+    `);
+
+    db.exec('DROP TABLE messages');
+    db.exec('ALTER TABLE messages_v2 RENAME TO messages');
+
+    db.exec('CREATE INDEX IF NOT EXISTS idx_messages_to_agent ON messages(to_agent_id, read, created_at)');
+    db.exec('CREATE INDEX IF NOT EXISTS idx_messages_run ON messages(run_id, created_at)');
+    db.exec('CREATE INDEX IF NOT EXISTS idx_messages_from_agent ON messages(from_agent_id, created_at)');
+
     db.exec('COMMIT');
   } catch (error) {
     db.exec('ROLLBACK');

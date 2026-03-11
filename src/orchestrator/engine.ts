@@ -430,6 +430,28 @@ export class OrchestratorEngine implements IOrchestratorEngine {
     }
 
     this.pool.release(agentId);
+    this.checkForRunStall(run);
+  }
+
+  // ─── Stall Detection ───
+
+  private checkForRunStall(run: Run): void {
+    const scopeTaskIds = this.scheduler.collectAllTaskIds(run.rootTaskIds);
+    const breakdown = this.scheduler.getStatusBreakdown(scopeTaskIds);
+
+    if (breakdown.failed === 0) return;
+    if (breakdown.in_progress > 0 || breakdown.ready > 0) return;
+
+    const stalledIds = scopeTaskIds.filter(id => {
+      const task = getTaskByIdGlobal(id);
+      return task && task.status === 'blocked';
+    });
+
+    if (stalledIds.length === 0) return;
+
+    const reason = `${breakdown.failed} task(s) failed permanently, blocking ${stalledIds.length} downstream task(s)`;
+    console.log(`[Run ${run.id}] Stall detected: ${reason}`);
+    eventBus.emit({ type: 'run:stalled', runId: run.id, reason, stalledTaskIds: stalledIds });
   }
 
   // ─── Agent Registration ───

@@ -270,6 +270,28 @@ export class ContextBuilder implements IContextBuilder {
    }
 
    private formatCollaborationGuide(): string {
-     return '';
+     return [
+       '## 🤝 Collaboration',
+       '',
+       'You can communicate with the orchestrator using the `message_send` MCP tool.',
+       '',
+       '### Reporting to Orchestrator',
+       'Use `message_send` with `to: "orchestrator"` for:',
+       '- **task_report**: Significant findings, partial results, or completion notes',
+       '- **escalation**: Blockers you cannot resolve, missing dependencies, or permission issues',
+       '',
+       '### Example',
+       '```',
+       'message_send({',
+       '  runId: "<current-run-id>",',
+       '  from: "<your-agent-id>",',
+       '  to: "orchestrator",',
+       '  type: "escalation",',
+       '  payload: { "summary": "Cannot access API endpoint", "details": "..." }',
+       '})',
+       '```',
+       '',
+       'Only send messages for blockers and significant findings. Do NOT send routine progress updates.',
+     ].join('\n');
    }
 }
