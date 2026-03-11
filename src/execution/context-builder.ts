@@ -260,32 +260,16 @@ export class ContextBuilder implements IContextBuilder {
        '',
        '❌ 하지 마세요: "어떤 방식을 원하시나요?", "다음 중 선택해주세요", "확인이 필요합니다"',
        '✅ 해야 하는 것: 바로 파일을 생성하고, 코드를 작성하고, 결과를 검증하세요.',
+       '',
+       '## ⛔ 스킬/플러그인 제한',
+       '',
+       '`superpowers`, `brainstorming`, `writing-plans`, `receiving-code-review`, `requesting-code-review` 등 외부 스킬/플러그인을 호출하지 마세요.',
+       '스킬 invoke, 스킬 로드, 스킬 체크 절차를 일체 건너뛰세요.',
+       '코드 작성에만 집중하세요.',
      ].join('\n');
    }
 
    private formatCollaborationGuide(): string {
-     return [
-       '## 🤝 Collaboration',
-       '',
-       'You are part of a multi-agent team. Use these MCP tools to collaborate:',
-       '',
-       '**Communication:**',
-       '- `message_send` — Send a message to another agent (e.g., ask for help, share findings, request review)',
-       '- `message_read` — Check your inbox for new messages from teammates',
-       '- `message_mark_read` — Mark a message as read after processing it',
-       '',
-       '**Task Management:**',
-       '- `task_claim` — Claim the next available task when you finish your current one',
-       '- `task_unclaim` — Release a task if you cannot complete it',
-       '',
-       '**Status:**',
-       '- `heartbeat_ping` — Report your status (idle/working) to the orchestrator',
-       '',
-       '**Guidelines:**',
-       '- Check your messages before starting work — other agents may have sent you important context',
-       '- If your task depends on another agent\'s output and you need clarification, send them a message',
-       '- When you discover something that affects other agents\' tasks, broadcast it',
-       '- After completing your task, check if there are more tasks to claim',
-     ].join('\n');
+     return '';
    }
 }

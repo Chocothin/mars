@@ -148,13 +148,16 @@ You have access to the \`mars-orchestrator\` MCP server. Use these tools for ALL
 **Always pass projectId: "${projectId}" when required.**
 
 ### Task Management
-- \`task_create\` — Create a task. Params: { projectId, title, description?, status?, priority?, parentTaskId?, assignedAgentType?, dependsOnTaskIds? }
+- \`task_create\` — Create a task. Params: { projectId, title, description?, status?: (backlog|ready), priority?: (low|medium|high|urgent), parentTaskId?, assignedAgentType?, dependsOnTaskIds? }
 - \`task_list\` — List tasks. Params: { projectId, status?, priority?, parentTaskId?, search? }
 - \`task_get\` — Get task by ID. Params: { taskId }
-- \`task_update\` — Update task. Params: { projectId, taskId, patch: { title?, description?, status?, priority?, assignedAgentType? } }
+- \`task_update\` — Update task. Params: { projectId, taskId, patch: { title?, description?, status?: (backlog|blocked|ready|in_progress|review|done|failed|cancelled), priority?, assignedAgentType? } }
 - \`task_delete\` — Delete task. Params: { projectId, taskId }
 - \`task_add_dependency\` — Add dependency. Params: { projectId, taskId, dependsOnTaskId }
 - \`task_remove_dependency\` — Remove dependency. Params: { projectId, taskId, dependsOnTaskId }
+
+**Valid status values**: backlog, blocked, ready, in_progress, review, done, failed, cancelled. For new tasks use \`backlog\` (default) or \`ready\`.
+**Valid priority values**: low, medium, high, urgent.
 
 ### Agent Management
 - \`agent_list\` — List project agents. Params: { }

@@ -272,6 +272,13 @@ export class OrchestratorEngine implements IOrchestratorEngine {
 
   private async coreLoop(run: Run, signal: AbortSignal): Promise<void> {
     while (!signal.aborted) {
+      const orphans = this.scheduler.findOrphanRootTasks(run.projectId, run.rootTaskIds);
+      if (orphans.length > 0) {
+        console.log(`[Run ${run.id}] Adopted ${orphans.length} orphan root task(s): ${orphans.join(', ')}`);
+        run.rootTaskIds = [...run.rootTaskIds, ...orphans];
+        updateRun(run.id, { rootTaskIds: run.rootTaskIds });
+      }
+
       const scopeTaskIds = this.scheduler.collectAllTaskIds(run.rootTaskIds);
 
       this.scheduler.activateBacklogTasks(scopeTaskIds);
@@ -315,13 +322,14 @@ export class OrchestratorEngine implements IOrchestratorEngine {
 
   private dispatchExecution(run: Run, agent: AgentPoolEntry, task: Task, _signal: AbortSignal): void {
     const proc = this.getOrCreateProcess(agent.agentId, run);
+    const startedAt = Date.now();
 
     proc.execute(task, [], (chunk) => {
       eventBus.emit({ type: 'task:progress', taskId: task.id, chunk });
     }).then(async (result) => {
-      await this.onTaskCompleted(run, task.id, agent.agentId, result.output);
+      await this.onTaskCompleted(run, task.id, agent.agentId, result.output, startedAt, result.durationMs);
     }).catch((error) => {
-      this.onTaskFailed(run, task.id, agent.agentId, error);
+      this.onTaskFailed(run, task.id, agent.agentId, error, startedAt);
     });
   }
 
@@ -350,12 +358,14 @@ export class OrchestratorEngine implements IOrchestratorEngine {
     taskId: string,
     agentId: string,
     output: TaskExecutionOutput,
+    startedAt: number,
+    durationMs: number,
   ): Promise<void> {
     const task = getTaskByIdGlobal(taskId);
 
     if (run.config.autoReview && task?.acceptanceCriteria?.length) {
       updateTaskInDb(taskId, { status: 'review' });
-      const execution = this.buildExecution(run.id, taskId, agentId, 'completed', output);
+      const execution = this.buildExecution(run.id, taskId, agentId, 'completed', output, startedAt, durationMs);
       const reviewResult = await this.reviewer.reviewWithCriteria(execution, task, {
         projectDirectory: getProjectById(task.projectId)?.directoryPath ?? '',
       });
@@ -383,11 +393,11 @@ export class OrchestratorEngine implements IOrchestratorEngine {
     updateTaskInDb(taskId, { status: 'done' });
     this.pool.release(agentId);
 
-    const exec = this.buildExecution(run.id, taskId, agentId, 'completed', output);
+    const exec = this.buildExecution(run.id, taskId, agentId, 'completed', output, startedAt, durationMs);
     insertTaskExecution(exec);
   }
 
-  private onTaskFailed(run: Run, taskId: string, agentId: string, error: unknown): void {
+  private onTaskFailed(run: Run, taskId: string, agentId: string, error: unknown, startedAt: number): void {
     const errorMsg = error instanceof Error ? error.message : String(error);
     console.error(`[Run ${run.id}] Task ${taskId} failed:`, errorMsg);
 
@@ -404,7 +414,8 @@ export class OrchestratorEngine implements IOrchestratorEngine {
       eventBus.emit({ type: 'task:retrying', taskId, attempt: retryCount });
     } else {
       updateTaskInDb(taskId, { status: 'failed' });
-      const exec = this.buildExecution(run.id, taskId, agentId, 'failed', null);
+      const failedDurationMs = Date.now() - startedAt;
+      const exec = this.buildExecution(run.id, taskId, agentId, 'failed', null, startedAt, failedDurationMs);
       exec.error = errorMsg;
       insertTaskExecution(exec);
     }
@@ -491,6 +502,8 @@ export class OrchestratorEngine implements IOrchestratorEngine {
     agentId: string,
     status: TaskExecution['status'],
     output: TaskExecutionOutput | null,
+    startedAt: number,
+    durationMs: number,
   ): TaskExecution {
     return {
       id: randomUUID(),
@@ -502,9 +515,9 @@ export class OrchestratorEngine implements IOrchestratorEngine {
       attempt: 1,
       input: { prompt: '', systemPrompt: '', tools: [], context: '', workingDirectory: '', orchestrationBrief: null },
       output,
-      startedAt: Date.now(),
-      completedAt: Date.now(),
-      durationMs: 0,
+      startedAt,
+      completedAt: startedAt + durationMs,
+      durationMs,
       error: null,
     };
   }

@@ -354,4 +354,39 @@ export class ReactiveScheduler {
 
     return Array.from(all);
   }
+
+  // ─── Orphan Root Task Discovery ───
+
+  findOrphanRootTasks(projectId: string, currentRootIds: string[]): string[] {
+    const db = getDb();
+
+    const allOwnedIds = new Set<string>(currentRootIds);
+    const runRows = db.prepare(
+      "SELECT root_task_ids FROM runs WHERE project_id = ? AND status NOT IN ('completed', 'failed', 'cancelled')"
+    ).all(projectId) as Array<{ root_task_ids: string }>;
+    for (const row of runRows) {
+      for (const id of JSON.parse(row.root_task_ids) as string[]) {
+        allOwnedIds.add(id);
+      }
+    }
+
+    if (allOwnedIds.size === 0) {
+      const rows = db.prepare(`
+        SELECT t.id FROM tasks t
+        WHERE t.project_id = ? AND t.parent_task_id IS NULL
+          AND t.status NOT IN ('done', 'failed', 'cancelled')
+      `).all(projectId) as Array<{ id: string }>;
+      return rows.map(r => r.id);
+    }
+
+    const ownedArr = Array.from(allOwnedIds);
+    const placeholders = ownedArr.map(() => '?').join(',');
+    const rows = db.prepare(`
+      SELECT t.id FROM tasks t
+      WHERE t.project_id = ? AND t.parent_task_id IS NULL
+        AND t.status NOT IN ('done', 'failed', 'cancelled')
+        AND t.id NOT IN (${placeholders})
+    `).all(projectId, ...ownedArr) as Array<{ id: string }>;
+    return rows.map(r => r.id);
+  }
 }
