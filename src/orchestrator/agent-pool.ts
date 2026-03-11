@@ -188,11 +188,11 @@ export class AgentPool {
     entry.currentTaskId = null;
     entry.lastActivityAt = Date.now();
 
-    if (this.runId) {
+    if (entry.runId) {
       eventBus.emit({
         type: 'agent:idle',
         agentId,
-        runId: this.runId,
+        runId: entry.runId,
       });
     }
 

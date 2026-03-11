@@ -16,7 +16,8 @@ import { insertRun, getRunById, updateRun, queryRuns } from '../db/run-repo';
 import { insertTaskExecution, updateTaskExecution, getTaskExecutionsByRunId } from '../db/task-exec-repo';
 import { getTaskByIdGlobal, updateTask as updateTaskInDb } from '../db/task-repo';
 import { getProjectById } from '../db/project-repo';
-import { getAgentById } from '../db/agent-repo';
+import { getAgentById, queryAgents } from '../db/agent-repo';
+import { getAgentType } from './agent-pool';
 import { getDb } from '../db/index';
 import { AgentPool, type AgentPoolEntry } from './agent-pool';
 import { ReactiveScheduler } from './reactive-scheduler';
@@ -271,7 +272,15 @@ export class OrchestratorEngine implements IOrchestratorEngine {
   // ─── Core Loop ───
 
   private async coreLoop(run: Run, signal: AbortSignal): Promise<void> {
+    let tickCount = 0;
+    const POOL_SYNC_EVERY = 5;
+
     while (!signal.aborted) {
+      if (tickCount % POOL_SYNC_EVERY === 0) {
+        this.syncAgentPool(run.id);
+      }
+      tickCount++;
+
       const orphans = this.scheduler.findOrphanRootTasks(run.projectId, run.rootTaskIds);
       if (orphans.length > 0) {
         console.log(`[Run ${run.id}] Adopted ${orphans.length} orphan root task(s): ${orphans.join(', ')}`);
@@ -429,6 +438,36 @@ export class OrchestratorEngine implements IOrchestratorEngine {
     const agents = await this.agentService.list({ enabled: true });
     for (const agent of agents) {
       this.pool.register(agent, run.id);
+    }
+  }
+
+  private syncAgentPool(runId: string): void {
+    const dbAgents = queryAgents({ enabled: true });
+    const dbAgentMap = new Map(dbAgents.map(a => [a.id, a]));
+    const poolEntries = this.pool.getAll();
+
+    for (const agent of dbAgents) {
+      const existing = this.pool.get(agent.id);
+      if (!existing) {
+        this.pool.register(agent, runId);
+        console.log(`[Pool Sync] Registered new agent: ${agent.name} (${agent.id})`);
+      } else if (existing.status === 'idle') {
+        const newType = getAgentType(agent);
+        if (existing.agentType !== newType || existing.agentName !== agent.name) {
+          existing.agentType = newType;
+          existing.agentName = agent.name;
+          console.log(`[Pool Sync] Updated agent properties: ${agent.name} (${agent.id})`);
+        }
+      }
+    }
+
+    for (const entry of poolEntries) {
+      if (!dbAgentMap.has(entry.agentId)) {
+        if (entry.status === 'idle') {
+          this.pool.unregister(entry.agentId);
+          console.log(`[Pool Sync] Removed agent: ${entry.agentName} (${entry.agentId})`);
+        }
+      }
     }
   }
 
