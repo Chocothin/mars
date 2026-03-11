@@ -6,7 +6,7 @@ import { eventBus } from '../events/bus';
 import { getTaskByIdGlobal } from '../db/task-repo';
 import { getDefaultProvider } from '../db/provider-repo';
 import type { DependencyEdge } from './types';
-import { AGENT_TYPES, getAgentType, normalizeAgentType } from './agent-pool';
+import { getAgentType, normalizeAgentType } from './agent-pool';
 
 // ─── Graph: transitive reduction (DFS reachability) ───
 
@@ -81,10 +81,11 @@ export class TaskDecomposer implements ITaskDecomposer {
     if (!task) throw new Error(`Task not found: ${taskId}`);
 
     const enabledAgents = await this.agentService.list({ enabled: true });
-    const agentListBlock = enabledAgents
-      .map(a => `  - "${getAgentType(a)}"`)
+    const agentTypes = [...new Set(enabledAgents.map(a => getAgentType(a)))];
+    const agentListBlock = agentTypes
+      .map(t => `  - "${t}"`)
       .join('\n');
-    const validTypesStr = AGENT_TYPES.join(', ');
+    const validTypesStr = agentTypes.join(', ');
 
     const prompt = [
       'You are a task decomposition specialist.',
