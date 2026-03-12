@@ -2,6 +2,8 @@
 
 An AI agent orchestration engine. Coordinates multiple CLI-based AI agents to automatically decompose, execute, and verify complex software projects.
 
+![DAG Pipeline — Task dependency graph visualization](docs/dag-pipeline.png)
+
 ## Architecture
 
 ```

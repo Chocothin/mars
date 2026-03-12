@@ -34,6 +34,7 @@ tmp/
 
 # Screenshots / verification images
 *.png
+!docs/*.png
 qa-screenshots/
 
 # Design exports
