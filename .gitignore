@@ -24,4 +24,26 @@ dist/
 
 # Temp
 tmp/
+
+# MARS runtime data
 .mars/
+
+# Internal planning / session files
+.mars-plan/
+.sisyphus/
+
+# Screenshots / verification images
+*.png
+qa-screenshots/
+
+# Design exports
+mars-design-export/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# SQLite extras
+*.db-shm
+*.db-wal
+*.db.bak
